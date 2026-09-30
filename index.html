@@ -352,7 +352,7 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .gbtns .btn{flex:1 1 150px}
 .ghint{font-size:13.5px;color:var(--muted);margin:2px 0 10px}
 .gsearch{margin-bottom:8px}
-.glist{max-height:340px;overflow:auto;margin-top:6px}
+.glist{margin-top:6px}
 .gsel{display:flex;align-items:center;gap:12px;width:100%;padding:10px 14px;text-align:left}
 .gsel:hover{background:var(--surface-2)}
 .gbox{width:24px;height:24px;flex:none;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;color:#fff}
@@ -454,6 +454,9 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
   .stat{padding:18px 20px;border-radius:14px}
   .stat b{font-size:34px}
   .cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:32px;align-items:start}
+  .alertrow .alertlist li:nth-child(n+4){display:none}
+  .cols>.col-b{order:1}
+  .cols>.col-a{order:2}
   .col-b .alertbar{margin-bottom:18px}
   .gcols{columns:2 420px;column-gap:28px}
   .gcols .grp{break-inside:avoid}
@@ -475,7 +478,6 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
   .giro{display:grid;grid-template-columns:minmax(0,480px) minmax(0,1fr);gap:36px;align-items:start}
   .gr{position:sticky;top:120px}
   .gph{display:grid;place-items:center;text-align:center;min-height:300px;padding:30px;border:1px dashed var(--line);border-radius:14px;color:var(--muted)}
-  .glist{max-height:420px}
   #giro-map-host .map{height:400px;min-height:320px}
   .toast{bottom:32px}
 }
@@ -1603,12 +1605,12 @@ function staleData(D){
   return out.sort(function(a,b){return b.days-a.days||cmpNome(a.c,b.c);});
 }
 function staleHtml(D){
-  var L=staleData(D),gg=alertGg(),show=S.ui.alertAll?L:L.slice(0,8);
+  var L=staleData(D),gg=alertGg(),show=L.slice(0,5);
   var h='<div class="sec-h"><h3>Alert visite</h3></div><div class="chips">'+[15,20,30,45,60].map(function(g){return chip('alertgg',g,'oltre '+g+' gg',g===gg);}).join('')+'</div>';
   if(!L.length)return h+'<div class="list"><div class="kv"><span class="s">Nessun cliente già visitato è fermo da oltre '+gg+' giorni.</span></div></div><p class="chart-note">Contano solo i clienti con almeno una visita registrata.</p>';
   h+='<div class="alertbox">'+ic('bell',18)+'<span><b>'+L.length+(L.length===1?' cliente non visitato':' clienti non visitati')+'</b> da oltre '+gg+' giorni</span></div>';
   h+='<ul class="list alertlist">'+show.map(function(x){return '<li class="row"><button class="row-main" data-act="open-cliente" data-id="'+esc(x.c.id)+'"><span class="t">'+esc(x.c.nome)+'</span><span class="s">Ultima visita '+x.days+' gg fa ('+esc(fmtDay(x.lv))+')'+(x.dla<x.days?' · ultimo contatto '+x.dla+' gg fa':'')+'</span></button>'+pill(x.c.stato)+'<span class="chev">'+ic('chevron',18)+'</span></li>';}).join('')+'</ul>';
-  if(L.length>8)h+='<button class="btn ghost wide" data-act="alert-all">'+(S.ui.alertAll?'Mostra meno':'Mostra tutti ('+L.length+')')+'</button>';
+  if(L.length>3)h+='<button class="btn ghost wide" data-act="alert-all">Mostra tutti ('+L.length+')</button>';
   h+='<button class="btn primary wide" data-act="alert-giro">'+ic('route',18)+' Pianifica un giro</button>';
   return h+'<p class="chart-note">Conta l\'ultima visita di persona. Restano fuori i clienti mai visitati e quelli da approcciare senza visite.</p>';
 }
@@ -2034,7 +2036,7 @@ var H={
   fab:function(){openQuick();},
   close:function(){closeSheet();},
   dati:function(){openDati();},
-  'open-cliente':function(el){S.ui.tab='clienti';S.ui.clienteId=el.dataset.id;S.ui.sub='scheda';window.scrollTo(0,0);render();},
+  'open-cliente':function(el){closeSheet();S.ui.tab='clienti';S.ui.clienteId=el.dataset.id;S.ui.sub='scheda';window.scrollTo(0,0);render();},
   'goto-cliente':function(el){closeSheet();S.ui.tab='clienti';S.ui.clienteId=el.dataset.id;S.ui.sub='scheda';window.scrollTo(0,0);render();},
   'goto-stato':function(el){S.ui.tab='clienti';S.ui.clienteId=null;S.ui.filtro=el.dataset.v;S.ui.q='';window.scrollTo(0,0);render();},
   filtro:function(el){S.ui.filtro=el.dataset.v;updateClientiList();},
@@ -2080,7 +2082,7 @@ var H={
   forgot:function(){doForgot();},
   retry:function(){location.reload();},
   alertgg:function(el){S.ui.alertGg=+el.dataset.v;try{localStorage.setItem('crm.alertGg',String(S.ui.alertGg));}catch(e){}render();},
-  'alert-all':function(){S.ui.alertAll=!S.ui.alertAll;render();},
+  'alert-all':function(){var L=staleData(statData());openSheet('Clienti non visitati da oltre '+alertGg()+' giorni','<ul class="list alertlist">'+L.map(function(x){return '<li class="row"><button class="row-main" data-act="open-cliente" data-id="'+esc(x.c.id)+'"><span class="t">'+esc(x.c.nome)+'</span><span class="s">Ultima visita '+x.days+' gg fa ('+esc(fmtDay(x.lv))+')</span></button>'+pill(x.c.stato)+'</li>';}).join('')+'</ul><div class="actions"><button type="button" class="btn ghost" data-act="close">Chiudi</button></div>');},
   'goto-alert':function(){S.ui.tab='stat';S.ui.clienteId=null;render();window.scrollTo(0,0);},
   'alert-giro':function(){var g=giroSt(),L=staleData(statData()),ok=L.filter(function(x){return hasGeo(x.c);});g.sel=ok.map(function(x){return x.c.id;});g.res=null;S.ui.tab='clienti';S.ui.clienteId=null;S.ui.vista='giro';render();window.scrollTo(0,0);if(ok.length<L.length)toast((L.length-ok.length)+' clienti senza posizione: localizzali dalla Mappa');},
   'g-tog':function(el){var g=giroSt(),id=el.dataset.id,i=g.sel.indexOf(id);if(i>=0)g.sel.splice(i,1);else g.sel.push(id);var on=i<0;el.classList.toggle('on',on);el.setAttribute('aria-pressed',on);var bx=el.querySelector('.gbox');if(bx)bx.innerHTML=on?ic('check2',16):'';updateGiroBits();g.res=null;var rs=$('#g-res');if(rs)rs.innerHTML=giroResHtml();},
