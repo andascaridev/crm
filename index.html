@@ -365,6 +365,12 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .kpis.k3{grid-template-columns:repeat(3,1fr)}
 .kpis.k3 .kpi b{font-size:16px;white-space:nowrap}
 .alertlist .s{white-space:normal}
+.kpis+.alertbar{margin-top:14px}
+.alertbar .btn.sm{padding:6px 12px;font-size:13px;min-height:0;flex:none}
+.alertbar.ok{background:var(--ok-bg);border-color:color-mix(in srgb,var(--ok) 35%,var(--line))}
+.alertbar.ok svg{color:var(--ok)}
+.alert-scroll{max-height:52vh;overflow-y:auto;margin-bottom:12px;overscroll-behavior:contain}
+.sheet .alertlist{box-shadow:none}
 .giro .chips{flex-wrap:wrap;overflow:visible}
 .chart-note.warn{color:#B26F00}
 #giro-map-host{margin:8px 0 12px}
@@ -832,7 +838,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v30.09-b</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v30.09-c</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function renderHeader(){
@@ -1604,22 +1610,26 @@ function staleData(D){
   });
   return out.sort(function(a,b){return b.days-a.days||cmpNome(a.c,b.c);});
 }
+function staleRows(L){return '<ul class="list alertlist">'+L.map(function(x){return '<li class="row"><button class="row-main" data-act="open-cliente" data-id="'+esc(x.c.id)+'"><span class="t">'+esc(x.c.nome)+'</span><span class="s">Ultima visita '+x.days+' gg fa ('+esc(fmtDay(x.lv))+')'+(x.dla<x.days?' · ultimo contatto '+x.dla+' gg fa':'')+'</span></button>'+pill(x.c.stato)+'<span class="chev">'+ic('chevron',18)+'</span></li>';}).join('')+'</ul>';}
+function alertSheet(){
+  var L=staleData(statData()),gg=alertGg();
+  var body='<div class="chips">'+[15,20,30,45,60].map(function(g){return chip('alertgg',g,'oltre '+g+' gg',g===gg);}).join('')+'</div>'
+    +(L.length?'<p class="ghint"><b>'+L.length+'</b> '+(L.length===1?'cliente non visitato':'clienti non visitati')+' da oltre '+gg+' giorni</p><div class="alert-scroll">'+staleRows(L)+'</div><div class="actions"><button type="button" class="btn ghost" data-act="close">Chiudi</button><button type="button" class="btn primary" data-act="alert-giro">'+ic('route',18)+' Pianifica un giro</button></div>'
+      :'<p class="ghint">Nessun cliente già visitato è fermo da oltre '+gg+' giorni.</p><div class="actions"><button type="button" class="btn ghost" data-act="close">Chiudi</button></div>')
+    +'<p class="chart-note">Conta l\'ultima visita di persona. Restano fuori i clienti mai visitati e quelli da approcciare senza visite.</p>';
+  openSheet('Clienti da rivisitare',body);
+}
 function staleHtml(D){
-  var L=staleData(D),gg=alertGg(),show=L.slice(0,5);
-  var h='<div class="sec-h"><h3>Alert visite</h3></div><div class="chips">'+[15,20,30,45,60].map(function(g){return chip('alertgg',g,'oltre '+g+' gg',g===gg);}).join('')+'</div>';
-  if(!L.length)return h+'<div class="list"><div class="kv"><span class="s">Nessun cliente già visitato è fermo da oltre '+gg+' giorni.</span></div></div><p class="chart-note">Contano solo i clienti con almeno una visita registrata.</p>';
-  h+='<div class="alertbox">'+ic('bell',18)+'<span><b>'+L.length+(L.length===1?' cliente non visitato':' clienti non visitati')+'</b> da oltre '+gg+' giorni</span></div>';
-  h+='<ul class="list alertlist">'+show.map(function(x){return '<li class="row"><button class="row-main" data-act="open-cliente" data-id="'+esc(x.c.id)+'"><span class="t">'+esc(x.c.nome)+'</span><span class="s">Ultima visita '+x.days+' gg fa ('+esc(fmtDay(x.lv))+')'+(x.dla<x.days?' · ultimo contatto '+x.dla+' gg fa':'')+'</span></button>'+pill(x.c.stato)+'<span class="chev">'+ic('chevron',18)+'</span></li>';}).join('')+'</ul>';
-  if(L.length>3)h+='<button class="btn ghost wide" data-act="alert-all">Mostra tutti ('+L.length+')</button>';
-  h+='<button class="btn primary wide" data-act="alert-giro">'+ic('route',18)+' Pianifica un giro</button>';
-  return h+'<p class="chart-note">Conta l\'ultima visita di persona. Restano fuori i clienti mai visitati e quelli da approcciare senza visite.</p>';
+  var L=staleData(D),gg=alertGg();
+  if(!L.length)return '<div class="alertbar ok">'+ic('bell',18)+'<span>Nessun cliente fermo da oltre <b>'+gg+' giorni</b></span><button class="btn ghost sm" data-act="alert-all">Cambia soglia</button></div>';
+  return '<div class="alertbar">'+ic('bell',18)+'<span><b>'+L.length+(L.length===1?' cliente non visitato':' clienti non visitati')+'</b> da oltre '+gg+' giorni</span><button class="btn ghost sm" data-act="alert-all">Vedi elenco</button></div>';
 }
 function viewStat(){
   if(!S.clienti.length)return emptyStart();
   var D=statData(),P=PERIODI[S.ui.statP]||PERIODI.mese,pr=periodRange(S.ui.statP),cur=countIn(D,pr.r),prv=pr.pr?countIn(D,pr.pr):null;
   var h='<div class="chips">'+Object.keys(PERIODI).map(function(k){return chip('statp',k,PERIODI[k].label,S.ui.statP===k);}).join('')+'</div>';
   function kpi(lab,key){return '<div class="kpi"><span>'+lab+'</span><b>'+cur[key]+'</b><small>'+deltaTxt(cur[key],prv?prv[key]:null,P.prev)+'</small></div>';}
-  h+='<div class="kpis">'+kpi('Nuovi clienti','nuovi')+kpi('Visite','visite')+kpi('Telefonate','tel')+kpi('To-do completati','fatti')+'</div>';
+  h+='<div class="kpis">'+kpi('Nuovi clienti','nuovi')+kpi('Visite','visite')+kpi('Telefonate','tel')+kpi('To-do completati','fatti')+'</div>'+staleHtml(D);
   var bk=buckets(P.unit),per=P.unit==='sett'?'settimana':'mese',lab=bk.map(function(b){return b.label;});
   var chA='<div><div class="sec-h"><h3>Visite per '+per+'</h3></div>'+barChart(bk.map(function(b){return countIn(D,b.r).visite;}),lab,'Visite per '+per)+'</div>';
   var chB='<div><div class="sec-h"><h3>Nuovi clienti per '+per+'</h3></div>'+barChart(bk.map(function(b){return countIn(D,b.r).nuovi;}),lab,'Nuovi clienti per '+per)+'</div>';
@@ -1636,7 +1646,6 @@ function viewStat(){
   var pc={cliente:0,approcciato:0,da_approcciare:0};D.cl.forEach(function(c){if(pc[c.stato]!=null)pc[c.stato]++;});
   var pf='<div><div class="sec-h"><h3>Portafoglio clienti</h3></div><div class="card"><div class="pf" role="img" aria-label="'+STATO_ORDER.map(function(k){return STATI[k].plural+' '+pc[k];}).join(', ')+'">'+STATO_ORDER.filter(function(k){return pc[k];}).map(function(k){return '<i style="flex:'+pc[k]+' 1 0;background:'+STATO_COL[k]+'"></i>';}).join('')+'</div><div class="pf-l">'+STATO_ORDER.map(function(k){return '<span><i style="background:'+STATO_COL[k]+'"></i>'+esc(STATI[k].plural)+' <b>'+pc[k]+'</b></span>';}).join('')+'</div></div></div>';
   h+='<div class="g2 top">'+rk+'<div>'+pf+'</div></div>';
-  h='<div class="g2 top alertrow"><div>'+staleHtml(D)+'</div></div>'+h;
   return h;
 }
 
@@ -2081,10 +2090,10 @@ var H={
   signup:function(){doSignUp();},
   forgot:function(){doForgot();},
   retry:function(){location.reload();},
-  alertgg:function(el){S.ui.alertGg=+el.dataset.v;try{localStorage.setItem('crm.alertGg',String(S.ui.alertGg));}catch(e){}render();},
-  'alert-all':function(){var L=staleData(statData());openSheet('Clienti non visitati da oltre '+alertGg()+' giorni','<ul class="list alertlist">'+L.map(function(x){return '<li class="row"><button class="row-main" data-act="open-cliente" data-id="'+esc(x.c.id)+'"><span class="t">'+esc(x.c.nome)+'</span><span class="s">Ultima visita '+x.days+' gg fa ('+esc(fmtDay(x.lv))+')</span></button>'+pill(x.c.stato)+'</li>';}).join('')+'</ul><div class="actions"><button type="button" class="btn ghost" data-act="close">Chiudi</button></div>');},
+  alertgg:function(el){S.ui.alertGg=+el.dataset.v;try{localStorage.setItem('crm.alertGg',String(S.ui.alertGg));}catch(e){}render();if($('.sheet[aria-label="Clienti da rivisitare"]'))alertSheet();},
+  'alert-all':function(){alertSheet();},
   'goto-alert':function(){S.ui.tab='stat';S.ui.clienteId=null;render();window.scrollTo(0,0);},
-  'alert-giro':function(){var g=giroSt(),L=staleData(statData()),ok=L.filter(function(x){return hasGeo(x.c);});g.sel=ok.map(function(x){return x.c.id;});g.res=null;S.ui.tab='clienti';S.ui.clienteId=null;S.ui.vista='giro';render();window.scrollTo(0,0);if(ok.length<L.length)toast((L.length-ok.length)+' clienti senza posizione: localizzali dalla Mappa');},
+  'alert-giro':function(){closeSheet();var g=giroSt(),L=staleData(statData()),ok=L.filter(function(x){return hasGeo(x.c);});g.sel=ok.map(function(x){return x.c.id;});g.res=null;S.ui.tab='clienti';S.ui.clienteId=null;S.ui.vista='giro';render();window.scrollTo(0,0);if(ok.length<L.length)toast((L.length-ok.length)+' clienti senza posizione: localizzali dalla Mappa');},
   'g-tog':function(el){var g=giroSt(),id=el.dataset.id,i=g.sel.indexOf(id);if(i>=0)g.sel.splice(i,1);else g.sel.push(id);var on=i<0;el.classList.toggle('on',on);el.setAttribute('aria-pressed',on);var bx=el.querySelector('.gbox');if(bx)bx.innerHTML=on?ic('check2',16):'';updateGiroBits();g.res=null;var rs=$('#g-res');if(rs)rs.innerHTML=giroResHtml();},
   'g-base-set':function(){giroBaseSet();},
   'g-base-me':function(){giroBaseMe();},
