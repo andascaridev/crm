@@ -1075,7 +1075,7 @@ async function doExport(template){
 var ALIAS={
   clienti:{nome:['azienda','ragione sociale','nome azienda','societa','cliente','nome'],stato:['stato','stato cliente','tipo cliente','categoria'],indirizzo:['indirizzo','via'],cap:['cap'],citta:['citta','comune','localita'],prov:['prov','provincia','pr'],telefono:['telefono','tel','telefono 1'],telefono2:['telefono 2','tel 2'],fax:['fax'],email:['email','e mail','mail'],email2:['email 2','e mail 2','pec','mail 2'],sito:['sito web','sito','web'],piva:['p iva','partita iva','piva'],note:['note','annotazioni']},
   referenti:{azienda:['azienda','ragione sociale','cliente','societa'],nome:['nome','referente','contatto','nome referente','nome e cognome'],ruolo:['ruolo','funzione','mansione','qualifica'],telefono:['telefono','tel','tel diretto'],cellulare:['cellulare','cell','mobile'],email:['email','e mail','mail'],note:['note']},
-  attivita:{azienda:['azienda','ragione sociale','cliente','societa'],data:['data','data e ora','quando'],tipo:['tipo','tipo attivita'],titolo:['oggetto','titolo','descrizione','esito'],note:['note','dettagli','resoconto']},
+  attivita:{azienda:['azienda','ragione sociale','cliente','societa'],data:['data','data e ora','quando'],tipo:['tipo','tipo attivita'],titolo:['oggetto','titolo','descrizione','esito'],referente:['referente','con chi','contatto','persona'],note:['note','dettagli','resoconto']},
   todo:{azienda:['azienda','ragione sociale','cliente','societa'],titolo:['titolo','to do','todo','cosa fare','descrizione','attivita'],scadenza:['scadenza','data scadenza','entro il'],promemoria:['promemoria','ricordami','reminder','avviso'],priorita:['priorita'],fatto:['fatto','completato'],note:['note']}
 };
 function readSheet(ws,alias){
@@ -1151,7 +1151,11 @@ function planImport(p){
   p.attivita.forEach(function(r){
     var c=getC(str(r.azienda));if(!c){skipped++;return;}
     var dt=parseDT(r.data);
-    var a={id:uid('a_'),clienteId:c.id,tipo:parseTipo(r.tipo),data:dt?dt.d+'T'+(dt.t||'09:00'):nowLocal(),titolo:str(r.titolo),note:str(r.note),referenteId:'',creato:new Date().toISOString()};
+    var rid='',rn=str(r.referente);
+    if(rn){c.referenti=c.referenti||[];var rk=normKey(rn),rf=c.referenti.find(function(x){return normKey(x.nome)===rk;});
+      if(!rf){rf={id:uid('r_'),nome:rn};c.referenti.push(rf);nRef++;}
+      rid=rf.id;}
+    var a={id:uid('a_'),clienteId:c.id,tipo:parseTipo(r.tipo),data:dt?dt.d+'T'+(dt.t||'09:00'):nowLocal(),titolo:str(r.titolo),note:str(r.note),referenteId:rid,creato:new Date().toISOString()};
     if(exA.has(aKey(a)))return;exA.add(aKey(a));newActs.push(a);
   });
   var tKey=function(a){return [a.clienteId,normKey(a.titolo),a.scadenza].join('|');},exT=new Set(S.todo.map(tKey)),newTodos=[];
