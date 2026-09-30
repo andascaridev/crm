@@ -68,7 +68,7 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .icon-btn.sm{width:38px;height:38px;border-radius:10px;color:var(--muted)}
 
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-.nav-in{max-width:780px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.nav-in{max-width:780px;margin:0 auto;display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
 .nav button{position:relative;display:grid;justify-items:center;gap:2px;padding:9px 4px 8px;font-size:11.5px;font-weight:600;color:var(--muted)}
 .nav button[aria-current="page"]{color:var(--ink)}
 .nav button[aria-current="page"]::before{content:"";position:absolute;top:0;left:32%;right:32%;height:2px;background:var(--ink);border-radius:0 0 2px 2px}
@@ -198,6 +198,59 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:500;z-index:70;max-width:calc(100% - 32px);text-align:center}
 .loading{padding:40px 4px;color:var(--muted)}
 
+/* ---- planning ---- */
+.nav button[data-v="plan"]{display:none}
+@media (min-width:720px){.nav button[data-v="plan"]{display:grid}}
+@media (min-width:900px){.nav button[data-v="plan"]{display:flex}}
+.plan-on .shell{max-width:none}
+.plan-on #view{max-width:none}
+.plan-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;margin-bottom:4px}
+.plan-nav{display:flex;gap:8px;padding-bottom:12px}
+.plan-nav .chip{padding:0 12px}
+.plan-range{font:600 15px var(--font-display);padding-bottom:12px;color:var(--muted)}
+.chip-sep{flex:none;width:1px;background:var(--line);margin:4px 4px}
+.plan-sum{font-size:13px;color:var(--muted);margin:0 2px 8px}
+.plan-scroll{overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--surface);max-height:calc(100vh - 250px)}
+.plan{border-collapse:separate;border-spacing:0;width:100%;min-width:max-content}
+.plan th,.plan td{padding:0;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:left;font-weight:400}
+.plan tr>*:last-child{border-right:0}
+.plan tbody tr:last-child>*{border-bottom:0}
+.plan thead th{position:sticky;top:0;z-index:3;background:var(--surface-2);height:56px;font-size:12px;color:var(--muted);text-align:center;font-weight:600}
+.plan thead th.c-name,.plan thead th.c-ref{text-align:left;padding:0 12px}
+.plan .c-name{position:sticky;left:0;z-index:2;width:210px;min-width:210px;max-width:210px;background:var(--surface)}
+.plan thead .c-name{z-index:4;background:var(--surface-2)}
+.plan .c-ref{position:sticky;left:210px;z-index:2;width:150px;min-width:150px;max-width:150px;background:var(--surface);padding:6px 12px;box-shadow:2px 0 0 var(--line)}
+.plan thead .c-ref{z-index:4;background:var(--surface-2)}
+.plan .c-name button{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;font-weight:600;font-size:14px}
+.plan .c-name button:hover{background:var(--surface-2)}
+.plan .t{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.plan .c-name .t{flex:1;min-width:0}
+.plan .c-ref .s{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{flex:none;width:9px;height:9px;border-radius:50%}
+.dot.cliente{background:var(--ok)}.dot.approcciato{background:var(--warn)}.dot.da_approcciare{background:var(--new)}
+.plan .c-day{min-width:52px;width:52px}
+.plan .c-day span{display:block;text-transform:uppercase;letter-spacing:.04em;font-size:10.5px}
+.plan .c-day b{display:block;font:700 16px var(--font-display);color:var(--ink);line-height:1.15}
+.plan .c-day small{display:block;font-size:10.5px}
+.plan thead .c-day.we{background:var(--bg)}
+.plan .c-day.today{background:var(--accent);color:var(--on-accent)}
+.plan .c-day.today b{color:var(--on-accent)}
+.plan td.today{background:var(--surface-2)}
+.pc{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px;width:100%;height:100%;min-height:50px;padding:4px}
+.pc:hover{background:var(--surface-2)}
+.pc:empty::after{content:"+";color:var(--line);font-size:18px;opacity:0}
+.pc:empty:hover::after,.pc:empty:focus-visible::after{opacity:1;color:var(--muted)}
+.pi{position:relative;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%}
+.pi i{position:absolute;top:-4px;right:-4px;min-width:14px;height:14px;border-radius:7px;background:var(--ink);color:var(--bg);font:700 9.5px/14px var(--font-body);font-style:normal;text-align:center;padding:0 3px}
+.pi.new{background:var(--new-bg);color:var(--new)}
+.pi.ok{background:var(--ok-bg);color:var(--ok)}
+.pi.warn{background:var(--warn-bg);color:var(--warn)}
+.pi.mut{background:var(--surface-2);color:var(--muted)}
+.pi.todo{background:none;color:var(--muted);border:1.5px dashed var(--line)}
+.plan-leg{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:13px;margin-top:12px}
+.plan-leg>span{display:inline-flex;align-items:center;gap:6px}
+.q.wide{grid-column:1/-1;min-height:84px}
+.q small{font-weight:400;color:var(--muted);font-size:13px}
 /* ---- statistiche, mappa, nota vocale ---- */
 .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-block:4px 6px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:2px;align-content:start}
@@ -338,6 +391,7 @@ var ICON={
   fax:'M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M7 14h10v6H7z',
   note:'M6 3h9l4 4v14H6zM9 12h7M9 16h7',
   chart:'M4 20h16M7 20v-9M12 20V5M17 20v-6',
+  calendar:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
   list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
   map:'M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14',
   mic:'M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zM6 11a6 6 0 0 0 12 0M12 17v4',
@@ -386,7 +440,7 @@ function addr(c){return [c.indirizzo,[c.cap,c.citta].filter(Boolean).join(' '),c
 
 /* ---------- stato ---------- */
 var S={clienti:[],attivita:[],todo:[],ready:{clienti:false,attivita:false,todo:false},mode:'loading',
-  ui:{tab:'oggi',clienteId:null,sub:'scheda',filtro:'tutti',q:'',todoF:'aperti',attF:'tutte',vista:'elenco',statP:'mese'}};
+  ui:{tab:'oggi',clienteId:null,sub:'scheda',filtro:'tutti',q:'',todoF:'aperti',attF:'tutte',vista:'elenco',statP:'mese',planStart:'',planAll:false,planS:'tutti'}};
 var DB=null,sb=null,USER=null,CHANNEL=null,rafId=0,PENDING=null;
 
 function idx(){
@@ -617,7 +671,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 /* ---------- viste ---------- */
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
-  var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['stat','chart','Statistiche']],n=badgeCount();
+  var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche']],n=badgeCount();
   $('#nav').innerHTML=items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('');
   $('#fab').innerHTML=ic('plus',26);
 }
@@ -628,7 +682,7 @@ function renderHeader(){
     el.innerHTML='<button class="icon-btn" data-act="back" aria-label="Indietro">'+ic('back')+'</button><div class="ttl"><h1>'+esc(c?c.nome:'')+'</h1></div><button class="icon-btn" data-act="edit-cliente" data-id="'+esc(ui.clienteId)+'" aria-label="Modifica cliente">'+ic('edit')+'</button>';
     return;
   }
-  var titles={oggi:'Oggi',clienti:'Clienti',todo:'To-do',attivita:'Attività',stat:'Statistiche'};
+  var titles={oggi:'Oggi',clienti:'Clienti',todo:'To-do',attivita:'Attività',stat:'Statistiche',plan:'Planning'};
   var sub=ui.tab==='oggi'?'<div class="sub">'+esc(dateLong())+''+'</div>':'';
   el.innerHTML='<div class="ttl"><h1>'+titles[ui.tab]+'</h1>'+sub+'</div><button class="icon-btn" data-act="dati" aria-label="Dati: importa ed esporta Excel">'+ic('dots')+'</button>';
 }
@@ -739,7 +793,7 @@ function viewCliente(){
   h+='<div class="qa">'
     +(tel?'<a class="qa-i" href="tel:'+esc(tel.replace(/[^\d+]/g,''))+'">'+ic('phone',20)+'Chiama</a>':'<span class="qa-i off">'+ic('phone',20)+'Chiama</span>')
     +(mail?'<a class="qa-i" href="mailto:'+esc(mail)+'">'+ic('mail',20)+'Scrivi</a>':'<span class="qa-i off">'+ic('mail',20)+'Scrivi</span>')
-    +'<button class="qa-i" data-act="new-att" data-cid="'+c.id+'">'+ic('pin',20)+'Visita</button>'
+    +'<button class="qa-i" data-act="new-att" data-cid="'+c.id+'">'+ic('pin',20)+'Contatto</button>'
     +'<button class="qa-i" data-act="new-todo" data-cid="'+c.id+'">'+ic('todo',20)+'To-do</button></div>';
   h+='<div class="chips" style="padding-top:10px">'+chip('sub','scheda','Scheda',sub==='scheda')+chip('sub','attivita','Attività',sub==='attivita',acts.length)+chip('sub','todo','To-do',sub==='todo',open.length)+'</div>';
   if(sub==='scheda'){
@@ -778,7 +832,9 @@ function doRender(){
   var v=$('#view');
   if(S.mode==='loading'||!(S.ready.clienti&&S.ready.attivita&&S.ready.todo)){v.innerHTML='<p class="loading">Carico i tuoi dati…</p>';return;}
   var ui=S.ui;
-  v.innerHTML=ui.tab==='oggi'?viewOggi():ui.tab==='clienti'?(ui.clienteId?viewCliente():viewClienti()):ui.tab==='todo'?viewTodo():ui.tab==='stat'?viewStat():viewAttivita();
+  if(ui.tab==='plan'&&!planWide()){ui.tab='oggi';renderHeader();renderNav();}
+  document.body.classList.toggle('plan-on',ui.tab==='plan');
+  v.innerHTML=ui.tab==='oggi'?viewOggi():ui.tab==='clienti'?(ui.clienteId?viewCliente():viewClienti()):ui.tab==='todo'?viewTodo():ui.tab==='stat'?viewStat():ui.tab==='plan'?viewPlan():viewAttivita();
   if(ui.tab==='clienti'&&!ui.clienteId&&ui.vista==='mappa')attachMap();
 }
 function render(){if(rafId)return;rafId=requestAnimationFrame(function(){rafId=0;doRender();});}
@@ -870,7 +926,7 @@ function openAttForm(opt){
   opt=opt||{};
   if(!opt.id&&!S.clienti.length){toast('Aggiungi prima un cliente');openClienteForm();return;}
   var cur=opt.id?S.attivita.find(function(x){return x.id===opt.id;}):null;
-  var a=cur?clone(cur):{tipo:opt.tipo||'visita',data:nowLocal(),clienteId:opt.clienteId||'',titolo:'',note:'',referenteId:''};
+  var a=cur?clone(cur):{tipo:opt.tipo||'visita',data:opt.data||nowLocal(),clienteId:opt.clienteId||'',titolo:'',note:'',referenteId:''};
   var locked=!!cur||!!opt.clienteId;
   var body='<form id="frm" novalidate>'+pickerHtml(a.clienteId,locked)
     +'<div class="field"><span class="lbl">Tipo</span><div class="seg wrap" role="radiogroup" aria-label="Tipo di attività">'+Object.keys(TIPI).map(function(k){return '<label><input type="radio" name="tipo" value="'+k+'"'+(a.tipo===k?' checked':'')+'><span>'+ic(TIPI[k].icon,16)+TIPI[k].label+'</span></label>';}).join('')+'</div></div>'
@@ -882,7 +938,7 @@ function openAttForm(opt){
     +(cur?'':'<label class="chk"><input type="checkbox" id="fu"><span>Aggiungi un to-do di follow-up</span></label><div class="fu" id="fu-box" hidden><div class="field"><label class="lbl" for="fu-t">To-do</label><input id="fu-t" type="text" value="Ricontattare" autocomplete="off"></div><div class="field"><label class="lbl" for="fu-d">Entro il</label><input id="fu-d" type="date" value="'+addDays(todayStr(),7)+'"></div><div class="chips">'+[['3','+3 giorni'],['7','+1 settimana'],['30','+1 mese']].map(function(x){return '<button type="button" class="chip" data-act="date-set" data-t="fu-d" data-n="'+x[0]+'">'+x[1]+'</button>';}).join('')+'</div></div>')
     +'<div class="actions">'+(cur?'<button type="button" class="btn danger" data-act="del" data-kind="att" data-id="'+cur.id+'">Elimina</button>':'')+'<button type="button" class="btn ghost" data-act="close">Annulla</button><button type="submit" class="btn primary">Salva</button></div>'
     +(cur?'<div class="actions"><button type="button" class="btn ghost" data-act="goto-cliente" data-id="'+esc(a.clienteId)+'">Apri scheda cliente</button></div>':'')+'</form>';
-  openSheet(cur?'Modifica attività':(a.tipo==='telefonata'?'Nuova telefonata':'Nuova visita'),body,function(sheet){
+  openSheet(cur?'Modifica attività':'Nuovo contatto',body,function(sheet){
     var frm=$('#frm',sheet);
     function fillRefs(cid){
       var c=S.clienti.find(function(x){return x.id===cid;});
@@ -942,7 +998,7 @@ function openTodoForm(opt){
 }
 function openQuick(){
   var cid=(S.ui.tab==='clienti'&&S.ui.clienteId)?S.ui.clienteId:'';
-  var body='<div class="quick"><button class="q" data-act="q-visita" data-cid="'+esc(cid)+'">'+ic('pin',24)+'Nuova visita</button><button class="q" data-act="q-tel" data-cid="'+esc(cid)+'">'+ic('phone',24)+'Telefonata</button><button class="q" data-act="q-todo" data-cid="'+esc(cid)+'">'+ic('todo',24)+'Nuovo to-do</button><button class="q" data-act="q-cliente">'+ic('building',24)+'Nuovo cliente</button></div>';
+  var body='<div class="quick"><button class="q wide" data-act="q-contatto" data-cid="'+esc(cid)+'">'+ic('pin',24)+'<span>Nuovo contatto<br><small>visita, telefonata, email…</small></span></button><button class="q" data-act="q-todo" data-cid="'+esc(cid)+'">'+ic('todo',24)+'Nuovo to-do</button><button class="q" data-act="q-cliente">'+ic('building',24)+'Nuovo cliente</button></div>';
   openSheet('Aggiungi',body);
 }
 function openDati(){
@@ -1132,6 +1188,65 @@ async function doImport(){
     await putMany('clienti',Array.from(p.work.values()));await putMany('attivita',p.newActs);await putMany('todo',p.newTodos);
     closeSheet();toast('Importazione completata');S.ui.tab='clienti';S.ui.clienteId=null;render();window.scrollTo(0,0);
   }catch(e){console.error(e);closeSheet();toast('Importazione interrotta: alcuni dati potrebbero mancare');}
+}
+
+/* ---------- planning (solo tablet e computer) ---------- */
+var PLAN_DAYS=14;
+function planWide(){return window.innerWidth>=720;}
+function planStart(){
+  if(!S.ui.planStart)S.ui.planStart=addDays(mondayOf(todayStr()),-7);
+  return S.ui.planStart;
+}
+function fmtShort(s){var p=s.split('-').map(Number);return p[2]+' '+MESI[p[1]-1];}
+var PLAN_TIPO={visita:'new',telefonata:'ok',email:'warn',riunione:'mut',altro:'mut'};
+function planChip(t,n){var T=TIPI[t]||TIPI.altro;return '<span class="pi '+(PLAN_TIPO[t]||'mut')+'" title="'+esc(T.label)+'">'+ic(T.icon,15)+(n>1?'<i>'+n+'</i>':'')+'</span>';}
+function viewPlan(){
+  if(!S.clienti.length)return emptyStart();
+  var I=idx(),st=planStart(),t=todayStr(),days=[],i;
+  for(i=0;i<PLAN_DAYS;i++)days.push(addDays(st,i));
+  var last=days[PLAN_DAYS-1];
+  var actBy=new Map(),todoBy=new Map();
+  S.attivita.forEach(function(a){
+    var d=(a.data||'').slice(0,10);if(d<st||d>last||!I.cm.has(a.clienteId))return;
+    var k=a.clienteId+'|'+d;if(!actBy.has(k))actBy.set(k,[]);actBy.get(k).push(a);
+  });
+  S.todo.forEach(function(x){
+    if(x.fatto||!I.cm.has(x.clienteId))return;
+    var d=effDate(x);if(!d||d<st||d>last)return;
+    var k=x.clienteId+'|'+d;if(!todoBy.has(k))todoBy.set(k,[]);todoBy.get(k).push(x);
+  });
+  var active=new Set();
+  actBy.forEach(function(v,k){active.add(k.split('|')[0]);});
+  todoBy.forEach(function(v,k){active.add(k.split('|')[0]);});
+  var list=S.clienti.filter(function(c){
+    if(S.ui.planS!=='tutti'&&c.stato!==S.ui.planS)return false;
+    return S.ui.planAll||active.has(c.id);
+  }).sort(cmpNome);
+  var nAct=0;actBy.forEach(function(v){nAct+=v.length;});
+  var h='<div class="plan-bar"><div class="plan-nav"><button class="chip" data-act="plan-nav" data-v="-7" aria-label="Settimana precedente">'+ic('back',16)+' Prima</button><button class="chip" data-act="plan-nav" data-v="0">Oggi</button><button class="chip" data-act="plan-nav" data-v="7" aria-label="Settimana successiva">Dopo '+ic('chevron',16)+'</button></div><span class="plan-range">'+esc(fmtShort(st))+' – '+esc(fmtShort(last))+' '+esc(last.slice(0,4))+'</span></div>';
+  h+='<div class="chips">'+chip('planall','att','Con attività',!S.ui.planAll)+chip('planall','tutti','Tutti i clienti',S.ui.planAll)+'<span class="chip-sep"></span>'+chip('plans','tutti','Tutti gli stati',S.ui.planS==='tutti')+STATO_ORDER.map(function(k){return chip('plans',k,STATI[k].plural,S.ui.planS===k);}).join('')+'</div>';
+  var head='<tr><th class="c-name">Cliente</th><th class="c-ref">Referente</th>'+days.map(function(d){
+    var p=d.split('-').map(Number),dow=new Date(p[0],p[1]-1,p[2]).getDay(),we=dow===0||dow===6;
+    return '<th class="c-day'+(d===t?' today':'')+(we?' we':'')+'"><span>'+GIORNI[dow]+'</span><b>'+p[2]+'</b><small>'+MESI[p[1]-1]+'</small></th>';
+  }).join('')+'</tr>';
+  var body=list.map(function(c){
+    var r=(c.referenti&&c.referenti[0])?c.referenti[0]:null,more=(c.referenti&&c.referenti.length>1)?' +'+(c.referenti.length-1):'';
+    var cells=days.map(function(d){
+      var acts=actBy.get(c.id+'|'+d)||[],tds=todoBy.get(c.id+'|'+d)||[],cnt={},inner='';
+      acts.forEach(function(a){cnt[a.tipo]=(cnt[a.tipo]||0)+1;});
+      Object.keys(cnt).forEach(function(k){inner+=planChip(k,cnt[k]);});
+      if(tds.length)inner+='<span class="pi todo" title="To-do in scadenza">'+ic('todo',15)+(tds.length>1?'<i>'+tds.length+'</i>':'')+'</span>';
+      var ids=acts.map(function(a){return a.id;}).join(','),tid=tds.map(function(x){return x.id;}).join(',');
+      var lbl=acts.length?acts.length+' attività':tds.length?tds.length+' to-do':'Aggiungi contatto';
+      return '<td class="c-cell'+(d===t?' today':'')+'"><button class="pc" data-act="plan-cell" data-cid="'+esc(c.id)+'" data-day="'+d+'" data-ids="'+esc(ids)+'" data-tids="'+esc(tid)+'" aria-label="'+esc(c.nome+', '+fmtShort(d)+': '+lbl)+'">'+inner+'</button></td>';
+    }).join('');
+    return '<tr><th class="c-name" scope="row"><button data-act="open-cliente" data-id="'+esc(c.id)+'"><span class="t">'+esc(c.nome)+'</span><span class="dot '+c.stato+'" title="'+esc(STATI[c.stato]?STATI[c.stato].label:'')+'"></span></button></th><td class="c-ref">'+(r?'<span class="t">'+esc(r.nome)+esc(more)+'</span>'+(r.ruolo?'<span class="s">'+esc(r.ruolo)+'</span>':''):'<span class="s">—</span>')+'</td>'+cells+'</tr>';
+  }).join('');
+  h+='<p class="plan-sum">'+list.length+' '+(list.length===1?'cliente':'clienti')+' · '+nAct+' '+(nAct===1?'attività':'attività')+' nel periodo</p>';
+  if(!list.length)return h+'<div class="empty"><p>Nessuna attività in questo periodo. Scegli "Tutti i clienti" per vedere l\'elenco completo, oppure tocca una casella per registrare un contatto.</p></div>';
+  h+='<div class="plan-scroll"><table class="plan"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  h+='<div class="plan-leg">'+['visita','telefonata','email','riunione'].map(function(k){return '<span>'+planChip(k,1)+TIPI[k].label+'</span>';}).join('')+'<span><span class="pi todo">'+ic('todo',15)+'</span>To-do in scadenza</span><span class="muted">Tocca una casella vuota per aggiungere un contatto in quel giorno.</span></div>';
+  return h;
 }
 
 /* ---------- statistiche ---------- */
@@ -1430,6 +1545,7 @@ var H={
   'edit-att':function(el){openAttForm({id:el.dataset.id});},
   'new-todo':function(el){openTodoForm({clienteId:el.dataset.cid});},
   'edit-todo':function(el){openTodoForm({id:el.dataset.id});},
+  'q-contatto':function(el){openAttForm({clienteId:el.dataset.cid});},
   'q-visita':function(el){openAttForm({clienteId:el.dataset.cid,tipo:'visita'});},
   'q-tel':function(el){openAttForm({clienteId:el.dataset.cid,tipo:'telefonata'});},
   'q-todo':function(el){openTodoForm({clienteId:el.dataset.cid});},
@@ -1461,6 +1577,16 @@ var H={
   retry:function(){location.reload();},
   statp:function(el){S.ui.statP=el.dataset.v;render();},
   vista:function(el){S.ui.vista=el.dataset.v;render();},
+  'plan-nav':function(el){var v=+el.dataset.v;S.ui.planStart=v===0?addDays(mondayOf(todayStr()),-7):addDays(planStart(),v);render();},
+  planall:function(el){S.ui.planAll=el.dataset.v==='tutti';render();},
+  plans:function(el){S.ui.planS=el.dataset.v;render();},
+  'plan-cell':function(el){
+    var ids=el.dataset.ids?el.dataset.ids.split(','):[],tids=el.dataset.tids?el.dataset.tids.split(','):[];
+    if(ids.length===1)openAttForm({id:ids[0]});
+    else if(ids.length>1){S.ui.tab='clienti';S.ui.clienteId=el.dataset.cid;S.ui.sub='attivita';window.scrollTo(0,0);render();}
+    else if(tids.length===1)openTodoForm({id:tids[0]});
+    else openAttForm({clienteId:el.dataset.cid,data:el.dataset.day+'T09:00'});
+  },
   'geo-run':function(){geoRun();},
   'geo-stop':function(){GEO.stop=true;},
   'geo-retry':function(){geoRetry();},
@@ -1474,6 +1600,7 @@ document.addEventListener('click',function(e){
   var el=e.target.closest('[data-act]');if(!el)return;
   var f=H[el.dataset.act];if(f){f(el,e);}
 });
+var rzT=0;window.addEventListener('resize',function(){clearTimeout(rzT);rzT=setTimeout(function(){if(S.ui.tab==='plan')render();},200);});
 document.addEventListener('input',function(e){
   if(e.target&&e.target.id==='q'){S.ui.q=e.target.value;updateClientiList();}
 });
