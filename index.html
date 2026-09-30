@@ -335,6 +335,42 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .auth .msg{margin-top:14px;font-size:14px;color:var(--muted);min-height:20px}
 .auth .msg.bad{color:var(--danger)}
 .auth .lnk{display:inline-block;margin-top:14px;font-weight:600;font-size:14px;text-decoration:underline;text-underline-offset:3px}
+.newref{border:1px dashed var(--line);border-radius:14px;padding:12px 12px 2px;margin:-4px 0 14px;background:var(--surface-2)}
+.newref .nr-t{font-size:13px;color:var(--muted);margin:0 0 8px}
+.alertbox,.alertbar{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,#D98A00 14%,var(--surface));border:1px solid color-mix(in srgb,#D98A00 45%,var(--line));margin:6px 0 10px;text-align:left}
+.alertbar{width:100%;margin:0 0 12px;font-weight:500}
+.alertbar>span:nth-child(2),.alertbox>span{flex:1}
+.alertbox svg,.alertbar svg{flex:none;color:#B26F00}
+.btn.wide{width:100%;margin-top:10px}
+.vtitle{flex:1;font-size:20px;margin:0}
+.giro .card.gcard{padding:14px 14px 6px}
+.gbtns{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.gbtns .btn{flex:1 1 150px}
+.ghint{font-size:13.5px;color:var(--muted);margin:2px 0 10px}
+.gsearch{margin-bottom:8px}
+.glist{max-height:340px;overflow:auto;margin-top:6px}
+.gsel{display:flex;align-items:center;gap:12px;width:100%;padding:10px 14px;text-align:left}
+.gsel:hover{background:var(--surface-2)}
+.gbox{width:24px;height:24px;flex:none;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;color:#fff}
+.gsel.on .gbox{background:#1A7550;border-color:#1A7550}
+.gt{flex:1;min-width:0;display:grid}
+.gt b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gt small{color:var(--muted);font-size:13px}
+#g-go{margin:14px 0 4px}
+#g-go:disabled{opacity:.45}
+.kpis.k3{grid-template-columns:repeat(3,1fr)}
+.kpis.k3 .kpi b{font-size:16px;white-space:nowrap}
+.alertlist .s{white-space:normal}
+.giro .chips{flex-wrap:wrap;overflow:visible}
+.chart-note.warn{color:#B26F00}
+#giro-map-host{margin:8px 0 12px}
+.gsteps{list-style:none;padding:0;margin:0 0 12px;background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.gs{display:flex;align-items:center;gap:12px;padding:10px 14px}
+.gs+.gs{border-top:1px solid var(--line)}
+.gn,.gpin{width:28px;height:28px;border-radius:50%;background:#2563EB;color:#fff;font:700 13px var(--font-display);display:grid;place-items:center;flex:none;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.gs.base .gn,.gpin.base{background:#1A7550}
+.btn.sm{min-height:36px;padding:0 12px;font-size:13px;flex:none}
+.map.fixing{cursor:crosshair;outline:3px solid #D98A00;outline-offset:-3px}
 </style>
 </head>
 <body>
@@ -396,6 +432,7 @@ var ICON={
   map:'M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14',
   mic:'M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zM6 11a6 6 0 0 0 12 0M12 17v4',
   stop:'M7 7h10v10H7z',
+  route:'M6 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 17h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8',
   locate:'M12 3v3M12 18v3M3 12h3M18 12h3M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'
 };
 function ic(n,s){s=s||22;return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+ICON[n]+'"/></svg>';}
@@ -440,7 +477,8 @@ function addr(c){return [c.indirizzo,[c.cap,c.citta].filter(Boolean).join(' '),c
 
 /* ---------- stato ---------- */
 var S={clienti:[],attivita:[],todo:[],ready:{clienti:false,attivita:false,todo:false},mode:'loading',
-  ui:{tab:'oggi',clienteId:null,sub:'scheda',filtro:'tutti',q:'',todoF:'aperti',attF:'tutte',vista:'elenco',statP:'mese',planStart:'',planAll:false,planS:'tutti'}};
+  ui:{tab:'oggi',clienteId:null,sub:'scheda',filtro:'tutti',q:'',todoF:'aperti',attF:'tutte',vista:'elenco',statP:'mese',planStart:'',planAll:false,planS:'tutti',alertGg:20,alertAll:false,giro:null}};
+try{var _ag=+localStorage.getItem('crm.alertGg');if(_ag>0)S.ui.alertGg=_ag;}catch(e){}
 var DB=null,sb=null,USER=null,CHANNEL=null,rafId=0,PENDING=null;
 
 function idx(){
@@ -705,6 +743,8 @@ function viewOggi(){
   function grp(title,items,cls){return items.length?'<section class="grp"><h3 class="grp-h '+(cls||'')+'">'+title+' <span class="cnt">'+items.length+'</span></h3><ul class="list">'+items.map(function(x){return todoRow(x,I,true);}).join('')+'</ul></section>':'';}
   var g=grp('Scaduti',over,'over')+grp('Oggi',today,'today')+grp('Prossimi 7 giorni',soon);
   h+=g||'<section class="grp"><h3 class="grp-h">Da fare</h3><ul class="list"><li class="row"><span class="s">Niente in scadenza nei prossimi 7 giorni.</span></li></ul></section>';
+  var stl=staleData(statData());
+  if(stl.length)h+='<button class="alertbar" data-act="goto-alert">'+ic('bell',18)+'<span><b>'+stl.length+'</b> '+(stl.length===1?'cliente non visitato':'clienti non visitati')+' da oltre '+alertGg()+' giorni</span><span class="chev">'+ic('chevron',18)+'</span></button>';
   var acts=S.attivita.filter(function(a){return I.cm.has(a.clienteId);}).sort(function(a,b){return b.data.localeCompare(a.data);}).slice(0,6);
   if(acts.length)h+='<section class="grp"><h3 class="grp-h">Ultime attività</h3><ul class="list">'+acts.map(function(a){return actRow(a,I,true);}).join('')+'</ul></section>';
   return h;
@@ -738,13 +778,15 @@ function chipsClientiHtml(){
 }
 function updateClientiList(){
   var l=$('#cl-list'),c=$('#cl-chips');if(c)c.innerHTML=chipsClientiHtml();
+  if(S.ui.vista==='giro')return;
   if(S.ui.vista==='mappa'){updateMapTools();refreshMarkers(true);return;}
   if(l)l.innerHTML=clientiListHtml();
 }
 function viewClienti(){
   if(!S.clienti.length)return emptyStart();
   var mp=S.ui.vista==='mappa';
-  var tog='<div class="vtog" role="group" aria-label="Vista">'+[['elenco','list','Elenco'],['mappa','map','Mappa']].map(function(x){return '<button data-act="vista" data-v="'+x[0]+'" aria-pressed="'+(S.ui.vista===x[0])+'" aria-label="'+x[2]+'">'+ic(x[1],18)+'<span>'+x[2]+'</span></button>';}).join('')+'</div>';
+  var tog='<div class="vtog" role="group" aria-label="Vista">'+[['elenco','list','Elenco'],['mappa','map','Mappa'],['giro','route','Giro']].map(function(x){return '<button data-act="vista" data-v="'+x[0]+'" aria-pressed="'+(S.ui.vista===x[0])+'" aria-label="'+x[2]+'">'+ic(x[1],18)+'<span>'+x[2]+'</span></button>';}).join('')+'</div>';
+  if(S.ui.vista==='giro')return exampleBanner()+'<div class="vrow"><h2 class="vtitle">Giro visite</h2>'+tog+'</div>'+viewGiroBody();
   return exampleBanner()+'<div class="vrow"><div class="search">'+ic('search',20)+'<input id="q" type="search" placeholder="Cerca azienda, referente, città, numero…" value="'+esc(S.ui.q)+'" autocomplete="off" aria-label="Cerca cliente"></div>'+tog+'</div><div class="chips" id="cl-chips">'+chipsClientiHtml()+'</div><div id="cl-list">'+(mp?'<div class="map-tools" id="map-tools">'+mapToolsHtml()+'</div><div id="map-host"></div>':clientiListHtml())+'</div>';
 }
 function viewTodo(){
@@ -836,6 +878,7 @@ function doRender(){
   document.body.classList.toggle('plan-on',ui.tab==='plan');
   v.innerHTML=ui.tab==='oggi'?viewOggi():ui.tab==='clienti'?(ui.clienteId?viewCliente():viewClienti()):ui.tab==='todo'?viewTodo():ui.tab==='stat'?viewStat():ui.tab==='plan'?viewPlan():viewAttivita();
   if(ui.tab==='clienti'&&!ui.clienteId&&ui.vista==='mappa')attachMap();
+  if(ui.tab==='clienti'&&!ui.clienteId&&ui.vista==='giro')attachGiro();
 }
 function render(){if(rafId)return;rafId=requestAnimationFrame(function(){rafId=0;doRender();});}
 
@@ -933,6 +976,7 @@ function openAttForm(opt){
     +'<div class="field"><label class="lbl" for="f-data">Data e ora</label><input id="f-data" name="data" type="datetime-local" value="'+esc(a.data)+'"></div>'
     +fld('f-titolo','Oggetto',a.titolo||'',{attrs:'placeholder="es. Presentato il nuovo listino" autocomplete="off"'})
     +'<div class="field"><label class="lbl" for="f-ref">Con chi</label><select id="f-ref" name="referenteId"></select></div>'
+    +'<div class="newref" id="nr-box" hidden><p class="nr-t">Nuovo referente: verrà salvato nella scheda dell\'azienda</p>'+fld('f-nr_nome','Nome e cognome','',{attrs:'autocomplete="off" autocapitalize="words"'})+'<div class="err" id="err-nr" hidden>Scrivi il nome del referente.</div>'+fld('f-nr_ruolo','Ruolo','',{attrs:'placeholder="es. Titolare, Acquisti, Manutenzione" autocomplete="off"'})+'<div class="row2">'+fld('f-nr_telefono','Telefono','',{type:'tel',attrs:'inputmode="tel" autocomplete="off"'})+fld('f-nr_cellulare','Cellulare','',{type:'tel',attrs:'inputmode="tel" autocomplete="off"'})+'</div>'+fld('f-nr_email','Email','',{type:'email',attrs:'inputmode="email" autocapitalize="off" autocomplete="off"'})+'</div>'
     +'<div class="field"><label class="lbl" for="f-note">Note e resoconto</label><textarea id="f-note" name="note" rows="5">'+esc(a.note||'')+'</textarea></div>'
     +recHtml()
     +(cur?'':'<label class="chk"><input type="checkbox" id="fu"><span>Aggiungi un to-do di follow-up</span></label><div class="fu" id="fu-box" hidden><div class="field"><label class="lbl" for="fu-t">To-do</label><input id="fu-t" type="text" value="Ricontattare" autocomplete="off"></div><div class="field"><label class="lbl" for="fu-d">Entro il</label><input id="fu-d" type="date" value="'+addDays(todayStr(),7)+'"></div><div class="chips">'+[['3','+3 giorni'],['7','+1 settimana'],['30','+1 mese']].map(function(x){return '<button type="button" class="chip" data-act="date-set" data-t="fu-d" data-n="'+x[0]+'">'+x[1]+'</button>';}).join('')+'</div></div>')
@@ -942,17 +986,25 @@ function openAttForm(opt){
     var frm=$('#frm',sheet);
     function fillRefs(cid){
       var c=S.clienti.find(function(x){return x.id===cid;});
-      $('#f-ref',sheet).innerHTML='<option value="">—</option>'+((c&&c.referenti)||[]).map(function(r){return '<option value="'+esc(r.id)+'"'+(a.referenteId===r.id?' selected':'')+'>'+esc(r.nome)+(r.ruolo?' · '+esc(r.ruolo):'')+'</option>';}).join('');
+      $('#f-ref',sheet).innerHTML='<option value="">—</option>'+((c&&c.referenti)||[]).map(function(r){return '<option value="'+esc(r.id)+'"'+(a.referenteId===r.id?' selected':'')+'>'+esc(r.nome)+(r.ruolo?' · '+esc(r.ruolo):'')+'</option>';}).join('')+(c?'<option value="__new">+ Nuovo referente…</option>':'');
+      $('#nr-box',sheet).hidden=true;
     }
     wirePicker(sheet,fillRefs);fillRefs(a.clienteId);
+    $('#f-ref',sheet).addEventListener('change',function(){var nw=this.value==='__new';$('#nr-box',sheet).hidden=!nw;if(nw)setTimeout(function(){$('#f-nr_nome',sheet).focus();},40);});
     var fu=$('#fu',sheet);if(fu)fu.addEventListener('change',function(){$('#fu-box',sheet).hidden=!fu.checked;});
     frm.addEventListener('submit',async function(e){
       e.preventDefault();
       var cid=$('#pk-id',sheet).value;
       if(!cid){var pe=$('#pk-err',sheet);if(pe)pe.hidden=false;var pq=$('#pk-q',sheet);if(pq)pq.focus();return;}
-      var fd=new FormData(frm);
+      var fd=new FormData(frm),newRef=null;
+      if(fd.get('referenteId')==='__new'){
+        var nn=(fd.get('nr_nome')||'').trim();
+        if(!nn){$('#err-nr',sheet).hidden=false;$('#f-nr_nome',sheet).focus();return;}
+        newRef={id:uid('r_'),nome:nn};['ruolo','telefono','cellulare','email'].forEach(function(k){newRef[k]=(fd.get('nr_'+k)||'').trim();});newRef.note='';
+      }
       var o=cur?clone(cur):{id:uid('a_'),creato:new Date().toISOString()};
-      o.clienteId=cid;o.tipo=fd.get('tipo')||'altro';o.data=fd.get('data')||nowLocal();o.titolo=(fd.get('titolo')||'').trim();o.note=(fd.get('note')||'').trim();o.referenteId=fd.get('referenteId')||'';
+      o.clienteId=cid;o.tipo=fd.get('tipo')||'altro';o.data=fd.get('data')||nowLocal();o.titolo=(fd.get('titolo')||'').trim();o.note=(fd.get('note')||'').trim();o.referenteId=newRef?newRef.id:(fd.get('referenteId')||'');
+      if(newRef){var cc0=clone(S.clienti.find(function(x){return x.id===cid;}));cc0.referenti=cc0.referenti||[];cc0.referenti.push(newRef);cc0.aggiornato=new Date().toISOString();await put('clienti',cc0);}
       await put('attivita',o);
       if(!cur){
         var cl=S.clienti.find(function(x){return x.id===cid;});
@@ -1304,6 +1356,28 @@ function deltaTxt(cur,prev,lab){
   var d=cur-prev;
   return (d>0?'▲ +'+d:d<0?'▼ '+d:'= uguale')+' vs '+esc(lab);
 }
+function alertGg(){var n=+S.ui.alertGg;return n>0?n:20;}
+function staleData(D){
+  var t=todayStr(),gg=alertGg(),out=[];
+  D.cl.forEach(function(c){
+    var acts=D.I.ta.get(c.id)||[],lv='',la='';
+    acts.forEach(function(a){var d=(a.data||'').slice(0,10);if(!d||d>t)return;if(d>la)la=d;if(a.tipo==='visita'&&d>lv)lv=d;});
+    if(!lv)return;
+    var days=diffDays(t,lv);
+    if(days>gg)out.push({c:c,lv:lv,days:days,la:la,dla:diffDays(t,la)});
+  });
+  return out.sort(function(a,b){return b.days-a.days||cmpNome(a.c,b.c);});
+}
+function staleHtml(D){
+  var L=staleData(D),gg=alertGg(),show=S.ui.alertAll?L:L.slice(0,8);
+  var h='<div class="sec-h"><h3>Alert visite</h3></div><div class="chips">'+[15,20,30,45,60].map(function(g){return chip('alertgg',g,'oltre '+g+' gg',g===gg);}).join('')+'</div>';
+  if(!L.length)return h+'<div class="list"><div class="kv"><span class="s">Nessun cliente già visitato è fermo da oltre '+gg+' giorni.</span></div></div><p class="chart-note">Contano solo i clienti con almeno una visita registrata.</p>';
+  h+='<div class="alertbox">'+ic('bell',18)+'<span><b>'+L.length+(L.length===1?' cliente non visitato':' clienti non visitati')+'</b> da oltre '+gg+' giorni</span></div>';
+  h+='<ul class="list alertlist">'+show.map(function(x){return '<li class="row"><button class="row-main" data-act="open-cliente" data-id="'+esc(x.c.id)+'"><span class="t">'+esc(x.c.nome)+'</span><span class="s">Ultima visita '+x.days+' gg fa ('+esc(fmtDay(x.lv))+')'+(x.dla<x.days?' · ultimo contatto '+x.dla+' gg fa':'')+'</span></button>'+pill(x.c.stato)+'<span class="chev">'+ic('chevron',18)+'</span></li>';}).join('')+'</ul>';
+  if(L.length>8)h+='<button class="btn ghost wide" data-act="alert-all">'+(S.ui.alertAll?'Mostra meno':'Mostra tutti ('+L.length+')')+'</button>';
+  h+='<button class="btn primary wide" data-act="alert-giro">'+ic('route',18)+' Pianifica un giro</button>';
+  return h+'<p class="chart-note">Conta l\'ultima visita di persona. Restano fuori i clienti mai visitati e quelli da approcciare senza visite.</p>';
+}
 function viewStat(){
   if(!S.clienti.length)return emptyStart();
   var D=statData(),P=PERIODI[S.ui.statP]||PERIODI.mese,pr=periodRange(S.ui.statP),cur=countIn(D,pr.r),prv=pr.pr?countIn(D,pr.pr):null;
@@ -1326,19 +1400,13 @@ function viewStat(){
   /* portafoglio */
   var pc={cliente:0,approcciato:0,da_approcciare:0};D.cl.forEach(function(c){if(pc[c.stato]!=null)pc[c.stato]++;});
   h+='<div class="sec-h"><h3>Portafoglio clienti</h3></div><div class="card"><div class="pf" role="img" aria-label="'+STATO_ORDER.map(function(k){return STATI[k].plural+' '+pc[k];}).join(', ')+'">'+STATO_ORDER.filter(function(k){return pc[k];}).map(function(k){return '<i style="flex:'+pc[k]+' 1 0;background:'+STATO_COL[k]+'"></i>';}).join('')+'</div><div class="pf-l">'+STATO_ORDER.map(function(k){return '<span><i style="background:'+STATO_COL[k]+'"></i>'+esc(STATI[k].plural)+' <b>'+pc[k]+'</b></span>';}).join('')+'</div></div>';
-  /* da ricontattare */
-  var t=todayStr(),stale=D.cl.filter(function(c){return c.stato!=='da_approcciare';}).map(function(c){
-    var acts=D.I.ta.get(c.id)||[],last=acts.reduce(function(m,a){var d=(a.data||'').slice(0,10);return d>m?d:m;},'');
-    return {c:c,last:last,days:last?diffDays(t,last):9999};
-  }).filter(function(x){return x.days>30;}).sort(function(a,b){return b.days-a.days;}).slice(0,8);
-  h+='<div class="sec-h"><h3>Da ricontattare</h3></div>';
-  h+=stale.length?'<ul class="list">'+stale.map(function(x){return '<li class="row"><button class="row-main" data-act="open-cliente" data-id="'+esc(x.c.id)+'"><span class="t">'+esc(x.c.nome)+'</span><span class="s">'+(x.last?'Ultima attività '+x.days+' gg fa':'Nessuna attività registrata')+'</span></button>'+pill(x.c.stato)+'<span class="chev">'+ic('chevron',18)+'</span></li>';}).join('')+'</ul><p class="chart-note">Clienti e approcciati senza attività da oltre 30 giorni.</p>':'<div class="list"><div class="kv"><span class="s">Tutti i clienti attivi sono stati sentiti negli ultimi 30 giorni.</span></div></div>';
+  h=staleHtml(D)+h;
   return h;
 }
 
 /* ---------- mappa ---------- */
 var STATO_COL={cliente:'#1A7550',approcciato:'#D98A00',da_approcciare:'#465789'};
-var MAP=null,MAPEL=null,MLAYER=null,LEAFP=null,ME=null,MAPFIT=false,GEO={run:false,stop:false,done:0,total:0};
+var FIX=null,MAP=null,MAPEL=null,MLAYER=null,LEAFP=null,ME=null,MAPFIT=false,GEO={run:false,stop:false,done:0,total:0};
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
 function ensureLeaflet(){
   if(window.L)return Promise.resolve();
@@ -1356,12 +1424,15 @@ function geoFailed(c){return !!addr(c)&&c.geo===addr(c)&&typeof c.lat!=='number'
 function mapToolsHtml(){
   var list=filtered(),on=list.filter(hasGeo).length,todo=S.clienti.filter(geoTodo).length,fail=S.clienti.filter(geoFailed).length;
   var h='<span class="grow"><b>'+on+'</b> di '+list.length+' clienti sulla mappa</span>';
-  if(GEO.run)h+='<span>Cerco gli indirizzi… '+GEO.done+'/'+GEO.total+'</span><button class="btn ghost" data-act="geo-stop">Ferma</button>';
+  if(FIX)h+='<span class="grow"><b>Tocca la mappa</b> nel punto esatto</span><button class="btn ghost" data-act="geo-cancel">Annulla</button>';
+  else if(GEO.run)h+='<span>Cerco gli indirizzi… '+GEO.done+'/'+GEO.total+'</span><button class="btn ghost" data-act="geo-stop">Ferma</button>';
   else{
     if(todo)h+='<button class="btn primary" data-act="geo-run">'+ic('pin',16)+' Localizza '+todo+(todo===1?' indirizzo':' indirizzi')+'</button>';
     if(fail)h+='<button class="btn ghost" data-act="geo-retry">'+fail+' non trovati · riprova</button>';
+    var apx=S.clienti.filter(function(c){return hasGeo(c)&&isApprox(c);}).length;
+    if(apx)h+='<button class="btn ghost" data-act="geo-approx">'+apx+' approssimati · riprova</button>';
   }
-  h+='<button class="btn ghost" data-act="geo-me">'+ic('locate',16)+' Vicino a me</button>';
+  if(!FIX)h+='<button class="btn ghost" data-act="geo-me">'+ic('locate',16)+' Vicino a me</button>';
   return h;
 }
 function updateMapTools(){var t=$('#map-tools');if(t)t.innerHTML=mapToolsHtml();}
@@ -1371,32 +1442,75 @@ function refreshMarkers(fit){
   var pts=[];
   filtered().filter(hasGeo).forEach(function(c){
     var col=STATO_COL[c.stato]||'#465789',ll=[c.lat,c.lng];
-    var m=L.circleMarker(ll,{radius:10,color:'#FFFFFF',weight:2.5,fillColor:col,fillOpacity:c.geoApprox?.55:1});
+    var m=L.circleMarker(ll,{radius:10,color:'#FFFFFF',weight:2.5,fillColor:col,fillOpacity:isApprox(c)?.55:1});
     var a=addr(c);
-    m.bindPopup('<div class="pop"><b>'+esc(c.nome)+'</b><small>'+esc([c.citta,STATI[c.stato]?STATI[c.stato].label:''].filter(Boolean).join(' · '))+(c.geoApprox?' · posizione approssimata':'')+'</small><div class="pb"><button data-act="open-cliente" data-id="'+esc(c.id)+'">Apri scheda</button><a href="https://www.google.com/maps/dir/?api=1&destination='+c.lat+','+c.lng+'" target="_blank" rel="noopener noreferrer">Indicazioni</a></div></div>',{minWidth:190});
+    m.bindPopup('<div class="pop"><b>'+esc(c.nome)+'</b><small>'+esc([c.citta,STATI[c.stato]?STATI[c.stato].label:''].filter(Boolean).join(' · '))+(isApprox(c)?' · posizione approssimata (solo il comune)':c.geoLv==='strada'?' · posizione sulla via, senza civico':'')+'</small><div class="pb"><button data-act="open-cliente" data-id="'+esc(c.id)+'">Apri scheda</button><button data-act="geo-fix" data-id="'+esc(c.id)+'">Correggi</button><a href="https://www.google.com/maps/dir/?api=1&destination='+c.lat+','+c.lng+'" target="_blank" rel="noopener noreferrer">Indicazioni</a></div></div>',{minWidth:190});
     MLAYER.addLayer(m);pts.push(ll);
   });
   if(fit&&pts.length){MAP.fitBounds(L.latLngBounds(pts),{padding:[36,36],maxZoom:14});MAPFIT=true;}
+}
+function mkMap(){
+  if(MAP)return;
+  MAPEL=document.createElement('div');MAPEL.className='map';
+  MAP=L.map(MAPEL).setView([42.5,12.5],6);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(MAP);
+  MLAYER=L.layerGroup().addTo(MAP);
+  MAP.on('click',function(ev){
+    if(!FIX)return;
+    var c=S.clienti.find(function(x){return x.id===FIX;});FIX=null;MAPEL.classList.remove('fixing');
+    if(!c){updateMapTools();return;}
+    var o=clone(c);o.lat=ev.latlng.lat;o.lng=ev.latlng.lng;o.geo=addr(c);o.geoApprox=false;o.geoLv='manuale';
+    put('clienti',o).then(function(){toast('Posizione corretta');});updateMapTools();
+  });
+}
+function geoFix(id){
+  if(!MAP)return;FIX=id;MAP.closePopup();MAPEL.classList.add('fixing');updateMapTools();
 }
 function attachMap(){
   if(!$('#map-host'))return;
   ensureLeaflet().then(function(){
     var host=$('#map-host');if(!host)return;
-    if(!MAP){
-      MAPEL=document.createElement('div');MAPEL.className='map';
-      MAP=L.map(MAPEL).setView([42.5,12.5],6);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(MAP);
-      MLAYER=L.layerGroup().addTo(MAP);
-    }
+    mkMap();FIX=null;MAPEL.classList.remove('fixing');
     host.appendChild(MAPEL);MAP.invalidateSize();refreshMarkers(!MAPFIT);
   }).catch(function(){var h=$('#map-host');if(h)h.innerHTML='<p class="map-msg">Non riesco a caricare la mappa. Controlla la connessione a internet e riprova.</p>';});
 }
-async function geocodeOne(q){
-  var r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=it&accept-language=it&q='+encodeURIComponent(q));
+async function nomi(params){
+  var r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&countrycodes=it&accept-language=it&'+params);
   if(!r.ok)throw new Error('http '+r.status);
   var j=await r.json();
-  return (j&&j[0])?{lat:+j[0].lat,lng:+j[0].lon}:null;
+  if(!(j&&j[0]))return null;
+  var x=j[0],ad=x.address||{},t=x.addresstype||x.type||'',lv='citta';
+  if(ad.house_number||/^(house|building|apartments|commercial|industrial|retail|office|yes)$/.test(x.type||''))lv='civico';
+  else if(x.category==='highway'||/^(road|residential|industrial|pedestrian|service|tertiary|secondary|primary|unclassified|living_street)$/.test(t))lv='strada';
+  return {lat:+x.lat,lng:+x.lon,lv:lv};
 }
+async function geocodeOne(q){var r=await nomi('q='+encodeURIComponent(q));return r?{lat:r.lat,lng:r.lng}:null;}
+function cleanStreet(s){
+  return String(s||'').replace(/\(([A-Za-z]{2})\)/g,' ').replace(/[–—]/g,',').replace(/\bital(y|ia)\b/gi,' ')
+    .replace(/(^|[\s,])(s\.?\s?n\.?\s?c?\.?)(?=$|[\s,])/gi,' ').replace(/\bn\.?\s?(?=\d)/gi,'').replace(/\s*,\s*,+/g,',').replace(/\s{2,}/g,' ').replace(/^[\s,]+|[\s,]+$/g,'');
+}
+async function geocodeClient(c){
+  var st=cleanStreet(c.indirizzo),city=(c.citta||'').trim(),cap=(c.cap||'').trim(),res=null;
+  function enc(o){return Object.keys(o).filter(function(k){return o[k];}).map(function(k){return k+'='+encodeURIComponent(o[k]);}).join('&');}
+  var steps=[];
+  if(st){
+    steps.push(function(){return nomi(enc({street:st,city:city,postalcode:cap,country:'Italia'}));});
+    steps.push(function(){return nomi('q='+encodeURIComponent([st,cap,city,'Italia'].filter(Boolean).join(', ')));});
+    if(cap&&city)steps.push(function(){return nomi(enc({street:st,city:city,country:'Italia'}));});
+  }
+  for(var i=0;i<steps.length;i++){
+    if(i)await sleep(1100);
+    res=await steps[i]();
+    if(res&&res.lv!=='citta')return res;
+  }
+  if(city||cap){
+    if(steps.length)await sleep(1100);
+    var cr=await nomi('q='+encodeURIComponent([[cap,city].filter(Boolean).join(' '),c.prov,'Italia'].filter(Boolean).join(', ')));
+    if(cr){cr.lv='citta';return cr;}
+  }
+  return res;
+}
+function isApprox(c){return !!(c.geoApprox||c.geoLv==='citta');}
 async function geoRun(){
   if(GEO.run)return;
   var ids=S.clienti.filter(geoTodo).map(function(c){return c.id;});
@@ -1407,26 +1521,19 @@ async function geoRun(){
     if(GEO.stop)break;
     var c=S.clienti.find(function(x){return x.id===ids[i];});
     if(!c||!geoTodo(c)){GEO.done++;continue;}
-    var q=addr(c),qc=q.replace(/[()]/g,''),res=null,approx=false;
-    try{
-      res=await geocodeOne(qc+', Italia');
-      if(!res&&(c.citta||c.cap)){
-        await sleep(1100);
-        res=await geocodeOne([[c.cap,c.citta].filter(Boolean).join(' '),c.prov].filter(Boolean).join(', ')+', Italia');
-        approx=!!res;
-      }
-    }catch(e){console.error(e);toast('Ricerca interrotta: controlla la connessione');broke=true;break;}
+    var q=addr(c),res=null;
+    try{res=await geocodeClient(c);}catch(e){console.error(e);toast('Ricerca interrotta: controlla la connessione');broke=true;break;}
     var o=clone(S.clienti.find(function(x){return x.id===ids[i];})||c);
     o.geo=q;
-    if(res){o.lat=res.lat;o.lng=res.lng;o.geoApprox=approx;found++;}else{o.lat=null;o.lng=null;o.geoApprox=false;}
+    if(res){o.lat=res.lat;o.lng=res.lng;o.geoLv=res.lv;o.geoApprox=res.lv==='citta';found++;}else{o.lat=null;o.lng=null;o.geoApprox=false;o.geoLv='';}
     await put('clienti',o);GEO.done++;updateMapTools();
     await sleep(1100);
   }
   GEO.run=false;updateMapTools();refreshMarkers(true);
   if(!broke)toast(found+' '+(found===1?'indirizzo localizzato':'indirizzi localizzati'));
 }
-async function geoRetry(){
-  var list=S.clienti.filter(geoFailed);
+async function geoRetry(all){
+  var list=all?S.clienti.filter(function(c){return hasGeo(c)&&isApprox(c);}):S.clienti.filter(geoFailed);
   for(var i=0;i<list.length;i++){var o=clone(list[i]);o.geo='';await put('clienti',o);}
   geoRun();
 }
@@ -1439,6 +1546,165 @@ function geoMe(){
     MAP.setView(ll,12);
   },function(){toast('Non riesco a leggere la posizione. Consenti l\'accesso dal browser.');},{timeout:12000});
 }
+
+
+/* ---------- giro visite ---------- */
+var GKEY='crm.giro';
+function giroSt(){
+  var g=S.ui.giro;
+  if(!g){
+    var sv={};try{sv=JSON.parse(localStorage.getItem(GKEY)||'{}')||{};}catch(e){}
+    g=S.ui.giro={sel:[],base:sv.base||null,baseTxt:sv.base?sv.base.txt:'',ritorno:sv.ritorno!==false,sosta:sv.sosta!=null?+sv.sosta:30,q:'',res:null,busy:false,err:''};
+  }
+  return g;
+}
+function giroSave(){var g=giroSt();try{localStorage.setItem(GKEY,JSON.stringify({base:g.base&&!g.base.gps?g.base:null,ritorno:g.ritorno,sosta:g.sosta}));}catch(e){}}
+function fmtKm(k){return (Math.round(k*10)/10).toFixed(1).replace('.',',')+' km';}
+function fmtMin(m){m=Math.round(m);if(m<60)return m+' min';var h=Math.floor(m/60),r=m%60;return h+' h'+(r?' '+r+' min':'');}
+function lastVisit(I,id){var t=todayStr(),lv='';(I.ta.get(id)||[]).forEach(function(a){var d=(a.data||'').slice(0,10);if(a.tipo==='visita'&&d&&d<=t&&d>lv)lv=d;});return lv;}
+function giroListHtml(){
+  var g=giroSt(),q=normKey(g.q),I=idx(),t=todayStr();
+  var list=S.clienti.filter(hasGeo).filter(function(c){return !q||normKey([c.nome,c.citta,c.indirizzo].join(' ')).indexOf(q)>=0;}).sort(cmpNome).slice(0,150);
+  return list.map(function(c){
+    var on=g.sel.indexOf(c.id)>=0,lv=lastVisit(I,c.id),sub=[c.citta,lv?'ultima visita '+diffDays(t,lv)+' gg fa':'mai visitato'].filter(Boolean).join(' · ');
+    return '<li class="row"><button class="gsel'+(on?' on':'')+'" data-act="g-tog" data-id="'+esc(c.id)+'" aria-pressed="'+on+'"><span class="gbox">'+(on?ic('check2',16):'')+'</span><span class="gt"><b>'+esc(c.nome)+'</b><small>'+esc(sub)+'</small></span>'+pill(c.stato)+'</button></li>';
+  }).join('')||'<li class="row"><span class="s">Nessun cliente localizzato corrisponde.</span></li>';
+}
+function giroBaseStatus(){var g=giroSt();return g.base?'Partenza: <b>'+esc(g.base.txt)+'</b>':'Base non impostata: scrivi l\'indirizzo e premi Imposta.';}
+function viewGiroBody(){
+  var g=giroSt(),nogeo=S.clienti.filter(function(c){return addr(c)&&!hasGeo(c);}).length,ng=S.clienti.filter(hasGeo).length;
+  var h='<div class="giro"><div class="sec-h"><h3>1 · Da dove parti</h3></div><div class="card gcard">'
+    +'<div class="field"><label class="lbl" for="g-base">Indirizzo di partenza (la tua azienda)</label><input id="g-base" type="text" value="'+esc(g.baseTxt)+'" placeholder="es. Via Roma 1, Teramo" autocomplete="off"></div>'
+    +'<div class="gbtns"><button class="btn primary" data-act="g-base-set">Imposta</button><button class="btn ghost" data-act="g-base-me">'+ic('locate',16)+' Usa la mia posizione</button></div>'
+    +'<p class="ghint" id="g-base-st">'+giroBaseStatus()+'</p>'
+    +'<label class="chk"><input type="checkbox" id="g-rit"'+(g.ritorno?' checked':'')+'><span>Torna alla base a fine giro</span></label>'
+    +'<div class="field"><label class="lbl" for="g-sosta">Minuti per ogni visita</label><input id="g-sosta" type="number" min="0" max="240" step="5" value="'+g.sosta+'" inputmode="numeric"></div></div>'
+    +'<div class="sec-h"><h3>2 · Chi vuoi visitare</h3><span class="muted" id="g-count">'+(g.sel.length?g.sel.length+(g.sel.length===1?' selezionato':' selezionati'):'')+'</span></div>'
+    +'<div class="search gsearch">'+ic('search',20)+'<input id="g-q" type="search" placeholder="Cerca azienda o città" value="'+esc(g.q)+'" autocomplete="off" aria-label="Cerca cliente"></div>'
+    +'<div class="chips"><button class="chip" data-act="g-alert">Non visitati da '+alertGg()+'+ gg</button><button class="chip" data-act="g-clear">Svuota selezione</button></div>'
+    +'<ul class="list glist" id="g-list">'+giroListHtml()+'</ul>'
+    +(nogeo?'<p class="chart-note">'+nogeo+(nogeo===1?' cliente non compare perché non ha':' clienti non compaiono perché non hanno')+' ancora una posizione: vai su Mappa e premi «Localizza».</p>':'')
+    +(!ng?'<p class="chart-note">Nessun cliente localizzato: vai su Mappa e premi «Localizza».</p>':'')
+    +'<button class="btn primary wide big" id="g-go" data-act="g-calc"'+(g.base&&g.sel.length?'':' disabled')+'>'+ic('route',18)+' Calcola il giro migliore</button>'
+    +'<div id="g-res">'+giroResHtml()+'</div></div>';
+  return h;
+}
+function updateGiroBits(){
+  var g=giroSt(),c=$('#g-count'),b=$('#g-go');
+  if(c)c.textContent=g.sel.length?g.sel.length+(g.sel.length===1?' selezionato':' selezionati'):'';
+  if(b)b.disabled=!(g.base&&g.sel.length);
+}
+function giroResHtml(){
+  var g=giroSt(),r=g.res;
+  if(g.busy)return '<p class="loading">Calcolo il giro…</p>';
+  if(g.err)return '<p class="err">'+esc(g.err)+'</p>';
+  if(!r)return '';
+  var n=r.stops.length,sos=Math.max(0,+g.sosta||0)*n,tot=r.min+sos;
+  var h='<div class="sec-h"><h3>Il tuo giro</h3></div><div class="kpis k3"><div class="kpi"><span>Strada</span><b>'+esc(fmtKm(r.km))+'</b><small>'+esc(fmtMin(r.min))+' di guida</small></div><div class="kpi"><span>Visite</span><b>'+n+'</b><small>'+esc(fmtMin(sos))+' in sosta</small></div><div class="kpi"><span>Totale</span><b>'+esc(fmtMin(tot))+'</b><small>'+(g.ritorno?'con rientro':'senza rientro')+'</small></div></div>';
+  if(r.src==='stima')h+='<p class="chart-note warn">Il servizio delle strade non è raggiungibile: distanze e tempi sono una stima in linea d\'aria (+30%). Riprova più tardi per il calcolo su strada.</p>';
+  else h+='<p class="chart-note">Tempi di guida senza traffico. Ordine calcolato per fare meno chilometri.</p>';
+  h+='<div id="giro-map-host"></div><ol class="gsteps"><li class="gs base"><span class="gn">P</span><span class="gt"><b>Partenza</b><small>'+esc(g.base.txt)+'</small></span></li>';
+  r.stops.forEach(function(s,i){
+    h+='<li class="gs"><span class="gn">'+(i+1)+'</span><span class="gt"><b>'+esc(s.c.nome)+'</b><small>'+esc([s.c.citta,fmtKm(s.km)+' · '+fmtMin(s.min)+' dal punto precedente'].filter(Boolean).join(' · '))+'</small></span><button class="btn ghost sm" data-act="open-cliente" data-id="'+esc(s.c.id)+'">Apri</button></li>';
+  });
+  if(r.back)h+='<li class="gs base"><span class="gn">P</span><span class="gt"><b>Rientro alla base</b><small>'+esc(fmtKm(r.back.km)+' · '+fmtMin(r.back.min))+'</small></span></li>';
+  h+='</ol>';
+  var us=gmapsUrls(r);
+  h+='<div class="gbtns">'+us.map(function(u,i){return '<a class="btn primary" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">'+ic('pin',16)+' '+(us.length>1?'Google Maps · tratta '+(i+1):'Apri in Google Maps')+'</a>';}).join('')+'</div>';
+  if(us.length>1)h+='<p class="chart-note">Google Maps accetta al massimo 9 tappe per volta: il giro è diviso in tratte.</p>';
+  return h;
+}
+function gmapsUrls(r){
+  var g=giroSt(),seq=[[g.base.lat,g.base.lng]].concat(r.stops.map(function(s){return [s.c.lat,s.c.lng];}));
+  if(r.back)seq.push([g.base.lat,g.base.lng]);
+  var urls=[],i=0,f=function(p){return p[0].toFixed(6)+','+p[1].toFixed(6);};
+  while(i<seq.length-1){
+    var j=Math.min(i+9,seq.length-1),u='https://www.google.com/maps/dir/?api=1&travelmode=driving&origin='+f(seq[i])+'&destination='+f(seq[j]);
+    if(j-i>1)u+='&waypoints='+seq.slice(i+1,j).map(f).join('%7C');
+    urls.push(u);i=j;
+  }
+  return urls;
+}
+function hav(a,b){var R=6371,r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)*Math.sin(dg/2);return 2*R*Math.asin(Math.sqrt(x));}
+function giroLocal(pts,ritorno){
+  var n=pts.length,D=[],i,j;
+  for(i=0;i<n;i++){D.push([]);for(j=0;j<n;j++)D[i].push(hav(pts[i],pts[j])*1.3);}
+  var left=[],ord=[0];for(i=1;i<n;i++)left.push(i);
+  while(left.length){var last=ord[ord.length-1],bi=0;for(i=1;i<left.length;i++)if(D[last][left[i]]<D[last][left[bi]])bi=i;ord.push(left.splice(bi,1)[0]);}
+  function cost(o){var s=0;for(var k=0;k<o.length-1;k++)s+=D[o[k]][o[k+1]];if(ritorno)s+=D[o[o.length-1]][0];return s;}
+  var imp=true,it=0;
+  while(imp&&it++<60){imp=false;
+    for(i=1;i<ord.length-1;i++)for(j=i+1;j<ord.length;j++){
+      var c=ord.slice(0,i).concat(ord.slice(i,j+1).reverse(),ord.slice(j+1));
+      if(cost(c)<cost(ord)-1e-9){ord=c;imp=true;}
+    }
+  }
+  var legs=[];for(i=0;i<ord.length-1;i++)legs.push({km:D[ord[i]][ord[i+1]],min:D[ord[i]][ord[i+1]]/55*60});
+  if(ritorno)legs.push({km:D[ord[ord.length-1]][0],min:D[ord[ord.length-1]][0]/55*60});
+  return {order:ord,legs:legs,geom:ord.map(function(k){return pts[k];}).concat(ritorno?[pts[0]]:[]),src:'stima'};
+}
+async function giroOsrm(pts,ritorno){
+  var co=pts.map(function(p){return p[1].toFixed(6)+','+p[0].toFixed(6);}).join(';');
+  var url='https://router.project-osrm.org/trip/v1/driving/'+co+'?source=first&'+(ritorno?'roundtrip=true':'roundtrip=false&destination=any')+'&steps=false&overview=full&geometries=geojson';
+  var ctl=new AbortController(),tm=setTimeout(function(){ctl.abort();},20000);
+  try{
+    var r=await fetch(url,{signal:ctl.signal});if(!r.ok)throw new Error('http '+r.status);
+    var j=await r.json();if(j.code!=='Ok'||!j.trips||!j.trips[0])throw new Error(j.code||'osrm');
+    var ord=[];j.waypoints.forEach(function(w,i){ord[w.waypoint_index]=i;});
+    var t0=j.trips[0];
+    return {order:ord,legs:t0.legs.map(function(l){return {km:l.distance/1000,min:l.duration/60};}),geom:t0.geometry.coordinates.map(function(c){return [c[1],c[0]];}),src:'osrm'};
+  }finally{clearTimeout(tm);}
+}
+async function giroCalc(){
+  var g=giroSt();
+  if(!g.base){toast('Imposta prima il punto di partenza');return;}
+  var cl=g.sel.map(function(id){return S.clienti.find(function(c){return c.id===id;});}).filter(function(c){return c&&hasGeo(c);});
+  if(!cl.length){toast('Scegli almeno un cliente');return;}
+  if(cl.length>20){toast('Massimo 20 clienti per giro');return;}
+  g.busy=true;g.err='';g.res=null;$('#g-res').innerHTML=giroResHtml();
+  var pts=[[g.base.lat,g.base.lng]].concat(cl.map(function(c){return [c.lat,c.lng];})),out;
+  try{out=await giroOsrm(pts,g.ritorno);}catch(e){console.error(e);out=giroLocal(pts,g.ritorno);}
+  var stops=[];
+  for(var i=1;i<out.order.length;i++)stops.push({c:cl[out.order[i]-1],km:out.legs[i-1].km,min:out.legs[i-1].min});
+  var km=0,min=0;out.legs.forEach(function(l){km+=l.km;min+=l.min;});
+  g.res={stops:stops,km:km,min:min,src:out.src,geom:out.geom,back:g.ritorno?out.legs[out.legs.length-1]:null};
+  g.busy=false;
+  var host=$('#g-res');if(host){host.innerHTML=giroResHtml();attachGiro();var s=$('#giro-map-host');if(s&&s.scrollIntoView)s.scrollIntoView({behavior:'smooth',block:'start'});}
+}
+function attachGiro(){
+  var g=giroSt();if(!g.res||!$('#giro-map-host'))return;
+  ensureLeaflet().then(function(){
+    var host=$('#giro-map-host');if(!host||!g.res)return;
+    mkMap();FIX=null;MAPEL.classList.remove('fixing');
+    host.appendChild(MAPEL);MAP.invalidateSize();MLAYER.clearLayers();MAPFIT=false;
+    var r=g.res,all=[];
+    if(r.geom&&r.geom.length){L.polyline(r.geom,{color:'#2563EB',weight:4,opacity:.85,dashArray:r.src==='stima'?'6 8':null}).addTo(MLAYER);r.geom.forEach(function(p){all.push(p);});}
+    function pin(ll,txt,cls){L.marker(ll,{icon:L.divIcon({className:'',html:'<span class="gpin'+(cls?' '+cls:'')+'">'+txt+'</span>',iconSize:[28,28],iconAnchor:[14,14]})}).addTo(MLAYER);all.push(ll);}
+    pin([g.base.lat,g.base.lng],'P','base');
+    r.stops.forEach(function(s,i){pin([s.c.lat,s.c.lng],String(i+1));});
+    if(all.length)MAP.fitBounds(L.latLngBounds(all),{padding:[30,30]});
+  }).catch(function(){var hh=$('#giro-map-host');if(hh)hh.innerHTML='<p class="map-msg">Non riesco a caricare la mappa.</p>';});
+}
+async function giroBaseSet(){
+  var g=giroSt(),el=$('#g-base'),txt=(el?el.value:'').trim(),st=$('#g-base-st');
+  if(!txt){toast('Scrivi l\'indirizzo di partenza');return;}
+  if(st)st.textContent='Cerco l\'indirizzo…';
+  try{
+    var res=await geocodeOne(cleanStreet(txt)+', Italia');
+    if(!res){if(st)st.textContent='Indirizzo non trovato: prova con via, numero e città.';return;}
+    g.base={txt:txt,lat:res.lat,lng:res.lng};g.baseTxt=txt;g.res=null;giroSave();
+    if(st)st.innerHTML=giroBaseStatus();var rs=$('#g-res');if(rs)rs.innerHTML='';updateGiroBits();
+  }catch(e){console.error(e);if(st)st.textContent='Non riesco a cercare l\'indirizzo: controlla la connessione.';}
+}
+function giroBaseMe(){
+  var g=giroSt();
+  if(!navigator.geolocation){toast('Posizione non disponibile');return;}
+  navigator.geolocation.getCurrentPosition(function(p){
+    g.base={txt:'La mia posizione attuale',lat:p.coords.latitude,lng:p.coords.longitude,gps:true};g.baseTxt=g.base.txt;g.res=null;
+    var el=$('#g-base');if(el)el.value=g.baseTxt;var st=$('#g-base-st');if(st)st.innerHTML=giroBaseStatus();var rs=$('#g-res');if(rs)rs.innerHTML='';updateGiroBits();
+  },function(){toast('Non riesco a leggere la posizione. Consenti l\'accesso dal browser.');},{timeout:12000});
+}
+function giroRefreshList(){var l=$('#g-list');if(l)l.innerHTML=giroListHtml();updateGiroBits();var rs=$('#g-res');if(rs&&!giroSt().busy){giroSt().res=null;rs.innerHTML='';}}
 
 /* ---------- nota vocale ---------- */
 var REC=null,RECLAST=null;
@@ -1579,6 +1845,16 @@ var H={
   signup:function(){doSignUp();},
   forgot:function(){doForgot();},
   retry:function(){location.reload();},
+  alertgg:function(el){S.ui.alertGg=+el.dataset.v;try{localStorage.setItem('crm.alertGg',String(S.ui.alertGg));}catch(e){}render();},
+  'alert-all':function(){S.ui.alertAll=!S.ui.alertAll;render();},
+  'goto-alert':function(){S.ui.tab='stat';S.ui.clienteId=null;render();window.scrollTo(0,0);},
+  'alert-giro':function(){var g=giroSt(),L=staleData(statData()),ok=L.filter(function(x){return hasGeo(x.c);});g.sel=ok.map(function(x){return x.c.id;});g.res=null;S.ui.tab='clienti';S.ui.clienteId=null;S.ui.vista='giro';render();window.scrollTo(0,0);if(ok.length<L.length)toast((L.length-ok.length)+' clienti senza posizione: localizzali dalla Mappa');},
+  'g-tog':function(el){var g=giroSt(),id=el.dataset.id,i=g.sel.indexOf(id);if(i>=0)g.sel.splice(i,1);else g.sel.push(id);var on=i<0;el.classList.toggle('on',on);el.setAttribute('aria-pressed',on);var bx=el.querySelector('.gbox');if(bx)bx.innerHTML=on?ic('check2',16):'';updateGiroBits();g.res=null;var rs=$('#g-res');if(rs)rs.innerHTML='';},
+  'g-base-set':function(){giroBaseSet();},
+  'g-base-me':function(){giroBaseMe();},
+  'g-alert':function(){var g=giroSt(),L=staleData(statData()),ok=L.filter(function(x){return hasGeo(x.c);});g.sel=ok.map(function(x){return x.c.id;});giroRefreshList();if(!L.length)toast('Nessun cliente da rivedere');else if(ok.length<L.length)toast((L.length-ok.length)+' clienti senza posizione');},
+  'g-clear':function(){giroSt().sel=[];giroRefreshList();},
+  'g-calc':function(){giroCalc();},
   statp:function(el){S.ui.statP=el.dataset.v;render();},
   vista:function(el){S.ui.vista=el.dataset.v;render();},
   'plan-nav':function(el){var v=+el.dataset.v;S.ui.planStart=v===0?addDays(mondayOf(todayStr()),-7):addDays(planStart(),v);render();},
@@ -1594,6 +1870,9 @@ var H={
   'geo-run':function(){geoRun();},
   'geo-stop':function(){GEO.stop=true;},
   'geo-retry':function(){geoRetry();},
+  'geo-approx':function(){geoRetry(true);},
+  'geo-fix':function(el){geoFix(el.dataset.id);},
+  'geo-cancel':function(){FIX=null;if(MAPEL)MAPEL.classList.remove('fixing');updateMapTools();},
   'geo-me':function(){geoMe();},
   'rec-toggle':function(){recToggle();},
   'rec-raw':function(){recUseRaw();},
@@ -1606,7 +1885,14 @@ document.addEventListener('click',function(e){
 });
 var rzT=0;window.addEventListener('resize',function(){clearTimeout(rzT);rzT=setTimeout(function(){if(S.ui.tab==='plan')render();},200);});
 document.addEventListener('input',function(e){
-  if(e.target&&e.target.id==='q'){S.ui.q=e.target.value;updateClientiList();}
+  var t=e.target;if(!t)return;
+  if(t.id==='q'){S.ui.q=t.value;updateClientiList();}
+  else if(t.id==='g-q'){giroSt().q=t.value;var l=$('#g-list');if(l)l.innerHTML=giroListHtml();}
+  else if(t.id==='g-base'){giroSt().baseTxt=t.value;}
+  else if(t.id==='g-sosta'){var g=giroSt();g.sosta=Math.max(0,Math.min(240,+t.value||0));giroSave();var rs=$('#g-res');if(rs&&g.res){rs.innerHTML=giroResHtml();attachGiro();}}
+});
+document.addEventListener('change',function(e){
+  if(e.target&&e.target.id==='g-rit'){var g=giroSt();g.ritorno=e.target.checked;g.res=null;giroSave();var rs=$('#g-res');if(rs)rs.innerHTML='';}
 });
 document.addEventListener('submit',function(e){if(e.target&&e.target.id==='auth-form'){e.preventDefault();doSignIn();}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#scrim'))closeSheet();});
