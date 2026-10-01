@@ -397,6 +397,7 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .vc text.mx{font-size:12px;font-weight:600}
 .vleg i.l2{background:var(--new)}.vleg i.l1{background:#D98A00}.vleg i.l0{background:#8A8F9C}
 .vleg i.l0,.vleg i.l1,.vleg i.l2{width:16px;height:4px;border-radius:2px;vertical-align:middle}
+.kpib{text-align:left;cursor:pointer;font:inherit;color:inherit;border:1px solid var(--line)}
 .warnt{color:var(--warn);font-weight:600}
 .vbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
 .vbar i{display:block;height:100%;background:var(--new);transition:width .25s}
@@ -939,7 +940,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-i</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-j</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function renderHeader(){
@@ -1891,7 +1892,7 @@ function viewAnalisi(){
   L.forEach(function(x){cur+=x.cur.t;prv+=x.prv.t;co+=x.cur.co;tc+=x.cur.tc;if(x.cur.t>0)att++;if(x.d!=null&&x.d<0)calo++;});
   var d=dlt(cur,prv),mg=tc>0?(tc-co)/tc:null,rc=(tc>0&&co>0)?(tc-co)/co:null;
   var tiles='<div class="kpis a4"><div class="kpi"><span>Fatturato '+T.Y+' (a oggi)</span><b>'+eur0(cur)+'</b><small>'+(d==null?'&nbsp;':(d>=0?'▲ +':'▼ ')+Math.abs(Math.round(d*100))+'% vs '+(T.Y-1)+' stesso periodo')+'</small></div>'
-    +'<div class="kpi"><span>Margine medio</span><b>'+(mg==null?'—':pct1(mg))+'</b><small>sul venduto '+T.Y+'</small></div>'
+    +'<button class="kpi kpib" data-act="ana-neg"><span>Margine medio</span><b>'+(mg==null?'—':pct1(mg))+'</b><small>sul venduto '+T.Y+' · tocca per i dettagli</small></button>'
     +'<div class="kpi"><span>Ricarico medio</span><b>'+(rc==null?'—':pct1(rc))+'</b><small>sul costo di acquisto</small></div>'
     +'<div class="kpi"><span>Clienti attivi</span><b>'+att+'</b><small>'+calo+' in calo vs '+(T.Y-1)+'</small></div></div>';
   var s=S.ui.anaS||'fatt';
@@ -2151,6 +2152,20 @@ async function handleVBatch(files){
     +'<div class="actions"><button type="button" class="btn primary" data-act="close">Chiudi</button></div>';
   openSheet('Importazione completata',body);
   var sh=$('.sheet');if(sh)sh.classList.add('wide');
+}
+/* --- righe con margine anomalo --- */
+function vNeg(){
+  var all=vAll(),L=[],tot=0,nn=0,loss=0;
+  all.forEach(function(rows,cid){
+    var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;
+    rows.forEach(function(r){if(!vInP(r.d,'ytd')||r.co==null)return;tot++;if(r.co>r.t){nn++;loss+=r.co-r.t;L.push({n:c.nome,x:r.x,t:r.t,co:r.co,q:r.q,k:r.k,d:r.d});}});
+  });
+  L.sort(function(a,b){return (b.co-b.t)-(a.co-a.t);});
+  var sp=0,sc=0;all.forEach(function(rows){rows.forEach(function(r){if(vInP(r.d,'ytd')&&r.co!=null){sp+=r.t;sc+=r.co;}});});
+  var body='<p class="ghint">Quest\'anno: ricavi '+eur0(sp)+' · costi '+eur0(sc)+' su '+tot.toLocaleString('it-IT')+' righe. Righe con costo maggiore del prezzo: <b>'+nn.toLocaleString('it-IT')+'</b> (perdita complessiva '+eur0(loss)+').</p>'
+   +(L.length?'<h3 class="vh">Le 15 peggiori</h3><ul class="list vlog">'+L.slice(0,15).map(function(o){return '<li class="row"><div class="row-main"><span class="t">'+esc(o.n)+' · '+esc(o.x||'')+'</span><span class="s">Ordine '+esc(o.k.split('#')[0])+' · '+esc(fmtIT(o.d))+' · '+o.q.toLocaleString('it-IT',{maximumFractionDigits:2})+' pz</span><span class="s warnt">Prezzo '+eur0(o.t)+' · costo '+eur0(o.co)+'</span></div></li>';}).join('')+'</ul>':'<p class="ghint">Nessuna riga con costo maggiore del prezzo.</p>')
+   +'<div class="actions"><button type="button" class="btn primary" data-act="close">Chiudi</button></div>';
+  openSheet('Dettaglio margine',body);
 }
 /* --- fatturato non abbinato --- */
 function vUnmAgg(){
@@ -2742,6 +2757,7 @@ var H={
   },
   'ana-log':function(){vLog();},
   'ana-unm':function(){vUnm();},
+  'ana-neg':function(){vNeg();},
   'ana-unm-save':function(){vUnmSave();},
   'ana-del':function(el){
     if(!el.classList.contains('armed')){el.classList.add('armed');el.dataset.orig=el.textContent;el.textContent='Conferma';setTimeout(function(){if(el.isConnected){el.classList.remove('armed');el.textContent=el.dataset.orig;}},4000);return;}
