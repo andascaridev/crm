@@ -403,6 +403,16 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .vsel{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 10px;font-size:15px;color:var(--ink)}
 .vh{font-size:15px;margin:16px 0 2px}
 .sheet.wide{max-width:720px}
+.row.inc{box-shadow:inset 3px 0 0 var(--danger)}
+.row.inc>.row-main>.t,.row.inc .c-name{color:var(--danger)}
+.inc-t,.inc-tag{color:var(--danger) !important;font-weight:600}
+.inc-tag{font-size:13px}
+.row-main .inc-t{white-space:normal;overflow:visible}
+.banner.inc-b{background:var(--danger-bg);color:var(--danger)}
+.banner.inc-b button{color:var(--danger);font-weight:700;text-decoration:underline}
+.chip[data-v="completare"]{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,var(--line))}
+.chip[data-v="completare"].on{background:var(--danger);color:var(--on-danger);border-color:var(--danger)}
+.vlog .row{padding-block:6px}
 .vper{background:var(--surface-2);border-radius:14px;padding:12px 14px;margin:6px 0 4px}
 .vper-r{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
 .vper-r label{display:grid;gap:4px;font-size:13px;color:var(--muted);flex:1;min-width:140px}
@@ -862,6 +872,15 @@ function actRow(a,I,showClient){
   var meta=[T.label];if(showClient&&c)meta.push(c.nome);meta.push(fmtDT(a.data));if(a.foto&&a.foto.length)meta.push(a.foto.length+(a.foto.length===1?' foto':' foto'));
   return '<li class="row arow"><span class="ico">'+ic(T.icon,18)+'</span><button class="row-main" data-act="edit-att" data-id="'+a.id+'"><span class="t">'+esc(a.titolo||T.label)+'</span><span class="s">'+esc(meta.join(' · '))+'</span>'+(a.note?'<span class="s snip">'+esc(a.note)+'</span>':'')+'</button></li>';
 }
+function missingC(c){
+  var rs=c.referenti||[],m=[];
+  if(!(c.indirizzo||c.citta))m.push('indirizzo');
+  if(!(c.telefono||c.telefono2||rs.some(function(r){return r.telefono||r.cellulare;})))m.push('telefono');
+  if(!(c.email||c.email2||rs.some(function(r){return r.email;})))m.push('email');
+  if(!rs.length)m.push('referente');
+  return m;
+}
+function incomplete(c){return missingC(c).length>=3;}
 function clienteRow(c,I){
   var acts=I.ta.get(c.id)||[],last=acts.reduce(function(m,a){return a.data>m?a.data:m;},'');
   var tds=(I.tt.get(c.id)||[]).filter(function(x){return !x.fatto;}),t=todayStr();
@@ -872,7 +891,9 @@ function clienteRow(c,I){
   if(tds.length)l2.push('<span class="'+(over?'due over':'')+'">'+tds.length+' to-do'+(over?' ('+over+' da fare ora)':'')+'</span>');
   var r0=(c.referenti&&c.referenti[0])||null,ph=c.telefono||(r0&&(r0.cellulare||r0.telefono))||'';
   var cells='<span class="c c-city">'+esc([c.citta,c.prov].filter(Boolean).join(' · ')||'—')+'</span><span class="c c-ref">'+(r0?esc(r0.nome)+(r0.ruolo?'<small>'+esc(r0.ruolo)+'</small>':''):'—')+'</span><span class="c c-last">'+(last?esc(fmtDay(last.slice(0,10))):'—')+'</span><span class="c c-todo'+(over?' over':'')+'">'+(tds.length?tds.length+(tds.length===1?' aperto':' aperti'):'—')+'</span>';
-  return '<li class="row crow">'+avatar(c.nome)+'<button class="row-main" data-act="open-cliente" data-id="'+c.id+'"><span class="t">'+esc(c.nome)+'</span>'+(l1?'<span class="s">'+esc(l1)+'</span>':'')+(l2.length?'<span class="s">'+l2.join(' · ')+'</span>':'')+'</button>'+cells+pill(c.stato)+'<span class="chev">'+ic('chevron',18)+'</span></li>';
+  var inc=incomplete(c);
+  if(inc){l2=['<span class="inc-t">Da completare: mancano '+missingC(c).join(', ')+'</span>'];cells=cells.replace('<span class="c c-city">'+esc([c.citta,c.prov].filter(Boolean).join(' · ')||'—')+'</span>','<span class="c c-city"><span class="inc-tag">Da completare</span></span>');}
+  return '<li class="row crow'+(inc?' inc':'')+'">'+avatar(c.nome)+'<button class="row-main" data-act="open-cliente" data-id="'+c.id+'"><span class="t">'+esc(c.nome)+'</span>'+(l1?'<span class="s">'+esc(l1)+'</span>':'')+(l2.length?'<span class="s">'+l2.join(' · ')+'</span>':'')+'</button>'+cells+pill(c.stato)+'<span class="chev">'+ic('chevron',18)+'</span></li>';
 }
 function kv(icon,label,value,kind,href){
   if(!value)return '';
@@ -889,7 +910,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-b</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-c</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function renderHeader(){
@@ -936,7 +957,8 @@ function viewOggi(){
 function filtered(){
   var q=normKey(S.ui.q),qd=S.ui.q.replace(/\D/g,'');
   return S.clienti.filter(function(c){
-    if(S.ui.filtro!=='tutti'&&c.stato!==S.ui.filtro)return false;
+    if(S.ui.filtro==='completare'){if(!incomplete(c))return false;}
+    else if(S.ui.filtro!=='tutti'&&c.stato!==S.ui.filtro)return false;
     if(!q)return true;
     var hay=[c.nome,c.citta,c.email,c.email2].concat((c.referenti||[]).map(function(r){return r.nome;})).map(normKey).join(' ');
     if(hay.indexOf(q)>=0)return true;
@@ -959,7 +981,8 @@ function clientiListHtml(){
 }
 function chipsClientiHtml(){
   var cnt={tutti:S.clienti.length,cliente:0,approcciato:0,da_approcciare:0};S.clienti.forEach(function(c){if(cnt[c.stato]!=null)cnt[c.stato]++;});
-  return chip('filtro','tutti','Tutti',S.ui.filtro==='tutti',cnt.tutti)+STATO_ORDER.map(function(k){return chip('filtro',k,STATI[k].plural,S.ui.filtro===k,cnt[k]);}).join('');
+  var nin=S.clienti.filter(incomplete).length;
+  return chip('filtro','tutti','Tutti',S.ui.filtro==='tutti',cnt.tutti)+STATO_ORDER.map(function(k){return chip('filtro',k,STATI[k].plural,S.ui.filtro===k,cnt[k]);}).join('')+((nin||S.ui.filtro==='completare')?chip('filtro','completare','Da completare',S.ui.filtro==='completare',nin):'');
 }
 function updateClientiList(){
   var l=$('#cl-list'),c=$('#cl-chips');if(c)c.innerHTML=chipsClientiHtml();
@@ -1013,6 +1036,7 @@ function viewCliente(){
   var acts=(I.ta.get(c.id)||[]).slice().sort(function(a,b){return b.data.localeCompare(a.data);});
   var tds=(I.tt.get(c.id)||[]),open=tds.filter(function(x){return !x.fatto;}).sort(byEff),done=tds.filter(function(x){return x.fatto;}).sort(function(a,b){return (b.fattoIl||'').localeCompare(a.fattoIl||'');});
   var h='<div class="seg" role="group" aria-label="Stato del cliente">'+STATO_ORDER.map(function(k){return '<button class="'+k+'" data-act="set-stato" data-v="'+k+'" aria-pressed="'+(c.stato===k)+'">'+STATI[k].label+'</button>';}).join('')+'</div>';
+  if(sub==='scheda'&&incomplete(c))h='<div class="banner inc-b"><span>Anagrafica da completare: mancano '+esc(missingC(c).join(', '))+'.</span><button data-act="edit-cliente" data-id="'+esc(c.id)+'">Completa</button></div>'+h;
   var tel=c.telefono||(c.referenti&&c.referenti[0]&&(c.referenti[0].cellulare||c.referenti[0].telefono))||'',mail=c.email||(c.referenti&&c.referenti[0]&&c.referenti[0].email)||'';
   h+='<div class="qa">'
     +(tel?'<a class="qa-i" href="tel:'+esc(tel.replace(/[^\d+]/g,''))+'">'+ic('phone',20)+'Chiama</a>':'<span class="qa-i off">'+ic('phone',20)+'Chiama</span>')
@@ -1810,13 +1834,21 @@ function anaCardsHtml(L){
       +'<div class="ac-f"><span>Stesso periodo '+(T.Y-1)+': '+eur0(x.prv.t)+'</span><span>'+(x.cur.m!=null?'Marg. '+pct0(x.cur.m)+(x.cur.r!=null?' · Ric. '+pct0(x.cur.r):''):'')+'</span></div></button>';
   }).join('')+'</div>';
 }
+function fmtQ(iso){var d=new Date(iso);if(isNaN(d))return '';return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' alle '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function vLog(){
+  var m=anaMeta(),L=(m&&m.log)||[],body;
+  if(L.length)body='<ul class="list vlog">'+L.slice().reverse().map(function(e){return '<li class="row"><div class="row-main"><span class="t">'+esc(e.f||'File senza nome')+'</span><span class="s">Ordini dal '+esc(fmtIT(e.da))+' al '+esc(fmtIT(e.a))+'</span><span class="s">Caricato il '+esc(fmtQ(e.q))+' · '+(e.n||0).toLocaleString('it-IT')+' righe · '+(e.c||0)+' clienti</span></div></li>';}).join('')+'</ul>';
+  else if(m&&m.per&&m.per.length)body='<ul class="list vlog">'+m.per.slice().reverse().map(function(p){return '<li class="row"><div class="row-main"><span class="t">Caricamento</span><span class="s">Ordini dal '+esc(fmtIT(p[0]))+' al '+esc(fmtIT(p[1]))+'</span></div></li>';}).join('')+'</ul>';
+  else body='<p class="ghint">Nessun file caricato finora.</p>';
+  openSheet('Storico caricamenti',body+'<div class="actions"><button type="button" class="btn ghost" data-act="close">Chiudi</button></div>');
+}
 function anaMeta(){var m=S.vendite.find(function(d){return d.id==='_meta';});return m||null;}
 function viewAnalisi(){
   if(S.ui.anaId)return viewAnaDetail(S.ui.anaId);
   var up='<input type="file" id="file-v" accept=".xlsx,.xls" hidden>';
   if(!S.vOk)return '<div class="empty"><h2>Manca un passaggio su Supabase</h2><p>Per usare l\'analisi vendite serve creare una tabella una volta sola: apri Supabase → SQL Editor, incolla il contenuto del file <b>VENDITE-supabase.sql</b> e premi Run. Poi ricarica questa pagina.</p></div>';
   var L=vCards(),meta=anaMeta();
-  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><span class="muted">'+(meta&&meta.da?esc(vCover(meta))+' · ultimo caricamento '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini: viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
+  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><button class="btn ghost" data-act="ana-log">'+ic('clock',18)+' Storico caricamenti</button><span class="muted">'+(meta&&meta.da?esc(vCover(meta))+' · ultimo caricamento '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini: viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
   if(!L.length)return head+'<div class="empty"><h2>Ancora nessun dato</h2><p>Carica il file Excel degli ordini (ragione sociale, quantità, prezzo netto). Verranno considerati solo i clienti che hai in rubrica.</p></div>';
   var T=vToday(),cur=0,prv=0,co=0,tc=0,att=0,calo=0;
   L.forEach(function(x){cur+=x.cur.t;prv+=x.prv.t;co+=x.cur.co;tc+=x.cur.tc;if(x.cur.t>0)att++;if(x.d!=null&&x.d<0)calo++;});
@@ -1945,6 +1977,7 @@ async function handleVFile(file){
   try{
     var buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array',cellDates:true}),p=vParse(wb);
     if(p.err){toast(p.err);return;}
+    p.file=file.name;
     p.names.forEach(function(n){var m=vAutoMatch(n.name);n.cid=m?m.cid:'';n.tipo=m?m.tipo:'';});
     VPLAN=p;vPreview();
   }catch(e){console.error(e);toast('Non riesco a leggere questo file.');}
@@ -1998,7 +2031,7 @@ async function vApply(){
   });
   var meta=anaMeta(),da=pda,a=pa;
   if(meta&&meta.da&&meta.da<da)da=meta.da;if(meta&&meta.a&&meta.a>a)a=meta.a;
-  docs.push({id:'_meta',da:da,a:a,per:((meta&&meta.per)||[]).concat([[pda,pa]]),caricato:new Date().toISOString()});
+  docs.push({id:'_meta',da:da,a:a,per:((meta&&meta.per)||[]).concat([[pda,pa]]),log:((meta&&meta.log)||[]).concat([{q:new Date().toISOString(),f:p.file||'',da:pda,a:pa,n:p.rows.filter(function(r){return asg.has(r.nome);}).length,c:groups.size}]),caricato:new Date().toISOString()});
   try{
     var cs=[];aliasAdd.forEach(function(names,cid){var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;var o=clone(c);o.alias=(o.alias||[]).concat(names.filter(function(n){return (o.alias||[]).indexOf(n)<0;}));cs.push(o);});
     await putMany('vendite',docs);await delMany('vendite',dels);if(cs.length)await putMany('clienti',cs);
@@ -2456,6 +2489,7 @@ var H={
   'ana-per':function(el){S.ui.anaP=el.dataset.v;render();},
   'ana-up':function(){var f=$('#file-v');f.value='';f.click();},
   'ana-go':function(){vApply();},
+  'ana-log':function(){vLog();},
   'ana-reset':function(el){
     if(!el.classList.contains('armed')){el.classList.add('armed');el.dataset.orig=el.textContent;el.textContent='Tocca ancora per confermare';setTimeout(function(){if(el.isConnected){el.classList.remove('armed');el.textContent=el.dataset.orig;}},4000);return;}
     delMany('vendite',S.vendite.map(function(d){return d.id;})).then(function(){toast('Dati di analisi cancellati');});
