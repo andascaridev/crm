@@ -386,6 +386,19 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .vc text{fill:var(--muted);font-size:11px}
 .vc .gl{stroke:var(--line);stroke-width:1}
 .vc .cur{fill:var(--new)}.vc .prev{fill:var(--muted);opacity:.4}
+.vc .ln{stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+.vc .ln.l2{stroke:var(--new);stroke-width:3}
+.vc .ln.l1{stroke:#D98A00}
+.vc .ln.l0{stroke:#8A8F9C;stroke-dasharray:5 4}
+.vc .pt{stroke:var(--surface);stroke-width:1.5}
+.vc .pt.l2{fill:var(--new)}.vc .pt.l1{fill:#D98A00}.vc .pt.l0{fill:#8A8F9C}
+.vc text.mx{font-size:12px;font-weight:600}
+.vleg i.l2{background:var(--new)}.vleg i.l1{background:#D98A00}.vleg i.l0{background:#8A8F9C}
+.vleg i.l0,.vleg i.l1,.vleg i.l2{width:16px;height:4px;border-radius:2px;vertical-align:middle}
+.vbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.vbar i{display:block;height:100%;background:var(--new);transition:width .25s}
+.btn.dang.armed{background:var(--danger);color:var(--on-danger);border-color:var(--danger)}
+.vlog .row{align-items:center;gap:10px}
 .vleg{display:flex;gap:14px;font-size:12.5px;color:var(--muted);margin-bottom:6px}
 .vleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
 .vleg i.cur{background:var(--new)}.vleg i.prev{background:var(--muted);opacity:.4}
@@ -574,7 +587,7 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 <div id="sheet-root"></div>
 <div class="toast" id="toast" hidden></div>
 <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
-<input type="file" id="file-v" accept=".xlsx,.xls" hidden>
+<input type="file" id="file-v" accept=".xlsx,.xls" multiple hidden>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
@@ -923,7 +936,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-f</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-g</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function renderHeader(){
@@ -1852,7 +1865,7 @@ function anaCardsHtml(L){
 function fmtQ(iso){var d=new Date(iso);if(isNaN(d))return '';return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' alle '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function vLog(){
   var m=anaMeta(),L=(m&&m.log)||[],body;
-  if(L.length)body='<ul class="list vlog">'+L.slice().reverse().map(function(e){return '<li class="row"><div class="row-main"><span class="t">'+esc(e.f||'File senza nome')+'</span><span class="s">Ordini dal '+esc(fmtIT(e.da))+' al '+esc(fmtIT(e.a))+'</span><span class="s">Caricato il '+esc(fmtQ(e.q))+' · '+(e.n||0).toLocaleString('it-IT')+' righe · '+(e.c||0)+' clienti</span></div></li>';}).join('')+'</ul>';
+  if(L.length)body='<ul class="list vlog">'+L.map(function(e,i){return {e:e,i:i};}).reverse().map(function(o){var e=o.e;return '<li class="row"><div class="row-main"><span class="t">'+esc(e.f||'File senza nome')+'</span><span class="s">Ordini dal '+esc(fmtIT(e.da))+' al '+esc(fmtIT(e.a))+'</span><span class="s">Caricato il '+esc(fmtQ(e.q))+' · '+(e.n||0).toLocaleString('it-IT')+' righe · '+(e.c||0)+' clienti</span></div><button type="button" class="btn ghost sm dang" data-act="ana-del" data-i="'+o.i+'">Cancella</button></li>';}).join('')+'</ul><p class="ghint">"Cancella" elimina i dati di quel periodo (tutti i clienti). Utile se hai importato una data sbagliata: poi ricarica il file giusto.</p>';
   else if(m&&m.per&&m.per.length)body='<ul class="list vlog">'+m.per.slice().reverse().map(function(p){return '<li class="row"><div class="row-main"><span class="t">Caricamento</span><span class="s">Ordini dal '+esc(fmtIT(p[0]))+' al '+esc(fmtIT(p[1]))+'</span></div></li>';}).join('')+'</ul>';
   else body='<p class="ghint">Nessun file caricato finora.</p>';
   openSheet('Storico caricamenti',body+'<div class="actions"><button type="button" class="btn ghost" data-act="close">Chiudi</button></div>');
@@ -1860,10 +1873,10 @@ function vLog(){
 function anaMeta(){var m=S.vendite.find(function(d){return d.id==='_meta';});return m||null;}
 function viewAnalisi(){
   if(S.ui.anaId)return viewAnaDetail(S.ui.anaId);
-  var up='<input type="file" id="file-v" accept=".xlsx,.xls" hidden>';
+  var up='<input type="file" id="file-v" accept=".xlsx,.xls" multiple hidden>';
   if(!S.vOk)return '<div class="empty"><h2>Manca un passaggio su Supabase</h2><p>Per usare l\'analisi vendite serve creare una tabella una volta sola: apri Supabase → SQL Editor, incolla il contenuto del file <b>VENDITE-supabase.sql</b> e premi Run. Poi ricarica questa pagina.</p></div>';
   var L=vCards(),meta=anaMeta();
-  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><button class="btn ghost" data-act="ana-log">'+ic('clock',18)+' Storico caricamenti</button><span class="muted">'+(meta&&meta.da?esc(vCover(meta))+' · ultimo caricamento '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini: viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
+  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><button class="btn ghost" data-act="ana-log">'+ic('clock',18)+' Storico caricamenti</button><span class="muted">'+(meta&&meta.da?esc(vCover(meta))+' · ultimo caricamento '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini (anche più file insieme): viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
   if(!L.length)return head+'<div class="empty"><h2>Ancora nessun dato</h2><p>Carica il file Excel degli ordini (ragione sociale, quantità, prezzo netto). Verranno considerati solo i clienti che hai in rubrica.</p></div>';
   var T=vToday(),cur=0,prv=0,co=0,tc=0,att=0,calo=0;
   L.forEach(function(x){cur+=x.cur.t;prv+=x.prv.t;co+=x.cur.co;tc+=x.cur.tc;if(x.cur.t>0)att++;if(x.d!=null&&x.d<0)calo++;});
@@ -1879,21 +1892,31 @@ function viewAnalisi(){
   return head+tiles+ctl+'<div id="an-list">'+anaCardsHtml(L)+'</div>'+foot;
 }
 function vMonthChart(rows){
-  var T=vToday(),a=new Array(12).fill(0),b=new Array(12).fill(0);
-  rows.forEach(function(r){if(r.d>T.t)return;var y=+r.d.slice(0,4),m=+r.d.slice(5,7)-1;if(y===T.Y)a[m]+=r.t;else if(y===T.Y-1)b[m]+=r.t;});
-  var mx=Math.max.apply(null,a.concat(b,[1])),step=Math.pow(10,Math.floor(Math.log10(mx)));
+  var T=vToday(),MI=['G','F','M','A','M','G','L','A','S','O','N','D'],ys=[T.Y-2,T.Y-1,T.Y],mt=anaMeta(),per=(mt&&mt.per)||[];
+  var V={};ys.forEach(function(y){V[y]=new Array(12).fill(null);});
+  function cov(y,m){var k=y+'-'+('0'+(m+1)).slice(-2);return per.some(function(p){return p[0].slice(0,7)<=k&&p[1].slice(0,7)>=k;});}
+  rows.forEach(function(r){if(r.d>T.t)return;var y=+r.d.slice(0,4),m=+r.d.slice(5,7)-1;if(V[y]){V[y][m]=(V[y][m]||0)+r.t;}});
+  ys.forEach(function(y){for(var m=0;m<12;m++){if(V[y][m]==null&&cov(y,m)&&(y<T.Y||m<=+T.t.slice(5,7)-1))V[y][m]=0;}});
+  var act=ys.filter(function(y){return V[y].some(function(v){return v!=null;});});
+  if(!act.length)return '<div class="card"><p class="ghint">Nessun dato da mostrare.</p></div>';
+  var all=[];act.forEach(function(y){V[y].forEach(function(v){if(v!=null)all.push(v);});});
+  var mx=Math.max.apply(null,all.concat([1])),step=Math.pow(10,Math.floor(Math.log10(mx)));
   var nice=[1,2,2.5,5,10].map(function(k){return k*step;}).filter(function(v){return v>=mx;})[0]||mx;
-  var W=640,H=240,pl=46,pb=24,pt=10,gw=(W-pl-6)/12,bw=gw*0.34,ph=H-pb-pt;
+  var W=640,H=240,pl=46,pb=26,pt=10,pr=10,gw=(W-pl-pr)/12,ph=H-pb-pt;
   function Y(v){return pt+ph-v/nice*ph;}
-  var svg='<svg class="vc" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Fatturato mensile '+T.Y+' contro '+(T.Y-1)+'">';
-  for(var g=0;g<=4;g++){var v=nice*g/4,yy=Y(v);svg+='<line x1="'+pl+'" x2="'+W+'" y1="'+yy+'" y2="'+yy+'" class="gl"/><text x="'+(pl-6)+'" y="'+(yy+4)+'" text-anchor="end">'+(v>=1000?(v/1000).toLocaleString('it-IT',{maximumFractionDigits:1})+'k':Math.round(v))+'</text>';}
-  for(var i=0;i<12;i++){
-    var x0=pl+i*gw+gw/2-bw-1;
-    if(b[i])svg+='<rect class="prev" x="'+x0.toFixed(1)+'" y="'+Y(b[i]).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+(ph-(Y(b[i])-pt)).toFixed(1)+'" rx="3"><title>'+esc(MESI[i]+' '+(T.Y-1)+': '+eur0(b[i]))+'</title></rect>';
-    if(a[i])svg+='<rect class="cur" x="'+(x0+bw+2).toFixed(1)+'" y="'+Y(a[i]).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+(ph-(Y(a[i])-pt)).toFixed(1)+'" rx="3"><title>'+esc(MESI[i]+' '+T.Y+': '+eur0(a[i]))+'</title></rect>';
-    svg+='<text x="'+(pl+i*gw+gw/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+MESI[i]+'</text>';
-  }
-  return '<div class="card"><div class="vleg"><span><i class="cur"></i>'+T.Y+'</span><span><i class="prev"></i>'+(T.Y-1)+'</span></div>'+svg+'</div>';
+  function X(i){return pl+i*gw+gw/2;}
+  var svg='<svg class="vc" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Fatturato mensile, confronto '+act.join(', ')+'">';
+  for(var g=0;g<=4;g++){var v=nice*g/4,yy=Y(v);svg+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+yy+'" y2="'+yy+'" class="gl"/><text x="'+(pl-6)+'" y="'+(yy+4)+'" text-anchor="end">'+(v>=1000?(v/1000).toLocaleString('it-IT',{maximumFractionDigits:1})+'k':Math.round(v))+'</text>';}
+  for(var i=0;i<12;i++)svg+='<text x="'+X(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" class="mx"><title>'+esc(MESI_L[i])+'</title>'+MI[i]+'</text>';
+  act.forEach(function(y){
+    var k='l'+(ys.indexOf(y)),seg=[],cur=[];
+    V[y].forEach(function(v,i){if(v==null){if(cur.length)seg.push(cur);cur=[];}else cur.push([X(i),Y(v)]);});
+    if(cur.length)seg.push(cur);
+    seg.forEach(function(sg){if(sg.length>1)svg+='<polyline class="ln '+k+'" fill="none" points="'+sg.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ')+'"/>';});
+    V[y].forEach(function(v,i){if(v==null)return;svg+='<circle class="pt '+k+'" cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="3.2"><title>'+esc(MESI_L[i]+' '+y+': '+eur0(v))+'</title></circle><circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="10" fill="transparent"><title>'+esc(MESI_L[i]+' '+y+': '+eur0(v))+'</title></circle>';});
+  });
+  svg+='</svg>';
+  return '<div class="card"><div class="vleg">'+act.slice().reverse().map(function(y){return '<span><i class="l'+ys.indexOf(y)+'"></i>'+y+'</span>';}).join('')+'</div>'+svg+'</div>';
 }
 function hbars(items,max){
   if(!items.length)return '<div class="list"><div class="kv"><span class="s">Nessun dato in questo periodo.</span></div></div>';
@@ -1925,7 +1948,7 @@ function viewAnaDetail(cid){
     +'<div class="kpi"><span>Ordini</span><b>'+ol.length+'</b><small>'+pr.length+' righe</small></div>'
     +'<div class="kpi"><span>Valore medio ordine</span><b>'+eur0(avg)+'</b><small>&nbsp;</small></div>'
     +'<div class="kpi"><span>Ordine maggiore</span><b>'+(best?eur0(best.t):'—')+'</b><small>'+(best?esc(fmtIT(best.d)):'&nbsp;')+'</small></div></div>';
-  h+='<div class="g2 top"><div><div class="sec-h"><h3>Fatturato mensile · '+T.Y+' contro '+(T.Y-1)+'</h3></div>'+vMonthChart(rows)+'</div>'
+  h+='<div class="g2 top"><div><div class="sec-h"><h3>Fatturato mensile · ultimi 3 anni</h3></div>'+vMonthChart(rows)+'</div>'
     +'<div><div class="sec-h"><h3>Andamento negli anni</h3></div>'+hbars(yl.map(function(e){var mm=e[1].tc>0?(e[1].tc-e[1].co)/e[1].tc:null,rr=(e[1].tc>0&&e[1].co>0)?(e[1].tc-e[1].co)/e[1].co:null;return {l:e[0]+(+e[0]===T.Y?' (in corso)':''),v:e[1].t,s:eur0(e[1].t)+(mm!=null?' · marg. '+pct0(mm)+' · ric. '+pct0(rr):'')};}))+'</div></div>';
   h+='<div class="g2 top"><div><div class="sec-h"><h3>Cosa compra · categorie</h3></div>'+hbars(cl.map(function(e){return {l:e[0],v:e[1].t,s:eur0(e[1].t)+' · '+pct0(e[1].t/Math.max(1,su.t))};}))+'</div>'
     +'<div><div class="sec-h"><h3>Prodotti più venduti</h3></div>'+(pl.length?'<ul class="list">'+pl.slice(0,12).map(function(p){var m=p.tc>0?(p.tc-p.co)/p.tc:null,rr=(p.tc>0&&p.co>0)?(p.tc-p.co)/p.co:null;return '<li class="row pr"><div class="row-main"><span class="t">'+esc(p.x||'')+'</span><span class="s">'+p.q.toLocaleString('it-IT',{maximumFractionDigits:2})+' pz · prezzo medio '+(p.q>0?eur2(p.t/p.q):'—')+(m!=null?' · marg. '+pct0(m)+' · ric. '+pct0(rr):'')+'</span></div><b class="rv">'+eur0(p.t)+'</b></li>';}).join('')+'</ul>':'<div class="list"><div class="kv"><span class="s">Nessun prodotto in questo periodo.</span></div></div>')+'</div></div>';
@@ -1934,6 +1957,30 @@ function viewAnaDetail(cid){
 }
 /* --- caricamento del file --- */
 var VPLAN=null;
+/* periodo dal nome del file: 2025-01 | 01-01-2025_31-01-2025 | 2025-01-01_2025-01-31 | gennaio 2025 */
+function vPerName(n){
+  n=String(n||'').replace(/\.[a-z0-9]{2,4}$/i,'');
+  function z(x){return ('0'+x).slice(-2);}
+  function ok(y,m,d){return m>=1&&m<=12&&d>=1&&d<=31&&y>=2000&&y<=2100;}
+  function last(y,m){return new Date(y,m,0).getDate();}
+  var D=[],m,re=/(?:^|\D)(20\d{2})-(\d{2})-(\d{2})(?!\d)/g;
+  while((m=re.exec(n))){if(ok(+m[1],+m[2],+m[3]))D.push(m[1]+'-'+m[2]+'-'+m[3]);}
+  if(D.length<2){
+    D=[];re=/(?:^|\D)(\d{1,2})[-._](\d{1,2})[-._](20\d{2})(?!\d)/g;
+    while((m=re.exec(n))){if(ok(+m[3],+m[2],+m[1]))D.push(m[3]+'-'+z(m[2])+'-'+z(m[1]));}
+  }
+  if(D.length>=2){D.sort();return [D[0],D[D.length-1]];}
+  var y=0,mo=0,low=n.toLowerCase();
+  for(var i=0;i<12;i++){if(low.indexOf(MESI_L[i])>=0){mo=i+1;break;}}
+  if(mo){m=/(20\d{2})/.exec(n);if(m)y=+m[1];}
+  if(!y){
+    m=/(?:^|\D)(20\d{2})[-._ ](\d{1,2})(?!\d)/.exec(n);if(m&&+m[2]>=1&&+m[2]<=12){y=+m[1];mo=+m[2];}
+    else{m=/(?:^|\D)(\d{1,2})[-._ ](20\d{2})(?!\d)/.exec(n);if(m&&+m[1]>=1&&+m[1]<=12){y=+m[2];mo=+m[1];}}
+  }
+  if(y&&mo)return [y+'-'+z(mo)+'-01',y+'-'+z(mo)+'-'+z(last(y,mo))];
+  return null;
+}
+
 function vNum(v){if(typeof v==='number')return v;if(v==null||v==='')return NaN;return parseFloat(String(v).replace(/\./g,'').replace(',','.'));}
 function vYmd(v){
   if(v instanceof Date){var d=new Date(v.getTime()+43200000);return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
@@ -1992,7 +2039,7 @@ async function handleVFile(file){
   try{
     var buf=await file.arrayBuffer(),wb=XLSX.read(buf,{type:'array',cellDates:true}),p=vParse(wb);
     if(p.err){toast(p.err);return;}
-    p.file=file.name;
+    p.file=file.name;p.pn=vPerName(file.name);
     p.names.forEach(function(n){var m=vAutoMatch(n.name);n.cid=m?m.cid:'';n.tipo=m?m.tipo:'';});
     VPLAN=p;vPreview();
   }catch(e){console.error(e);toast('Non riesco a leggere questo file.');}
@@ -2006,8 +2053,9 @@ function vPreview(){
   var nrows=ok.reduce(function(s,n){return s+n.n;},0);
   function line(n,i){return '<div class="vm"><div class="vm-n"><b>'+esc(n.name)+'</b><small>'+n.n+' righe · '+eur0(n.t)+(n.tipo==='simile'?' · nome simile, controlla':'')+'</small></div><select class="vsel" data-i="'+p.names.indexOf(n)+'" aria-label="Cliente in rubrica">'+vOptions(n.cid)+'</select></div>';}
   var mt=anaMeta(),dflA=todayStr(),dflD=(mt&&mt.a&&mt.a<dflA)?addDays(mt.a,1):dflA.slice(0,8)+'01';
+  if(p.pn){dflD=p.pn[0];dflA=p.pn[1];}
   var body='<p class="ghint">Righe lette: <b>'+p.rows.length.toLocaleString('it-IT')+'</b>. Escluse spese e anticipi: '+p.excl+'. Righe senza quantità o prezzo: '+p.skip+'.</p>'
-    +'<div class="vper"><b>Periodo degli ordini in questo file</b><div class="vper-r"><label>Dal<input type="date" id="vp-da" value="'+dflD+'"></label><label>Al<input type="date" id="vp-a" value="'+dflA+'"></label></div><p class="ghint">Indica da quando a quando gli ordini sono stati <b>inseriti</b> (non consegnati). Meglio un mese intero alla volta. I dati già presenti in questo periodo vengono sostituiti, quelli degli altri periodi restano.</p></div>'
+    +'<div class="vper"><b>Periodo degli ordini in questo file</b><div class="vper-r"><label>Dal<input type="date" id="vp-da" value="'+dflD+'"></label><label>Al<input type="date" id="vp-a" value="'+dflA+'"></label></div><p class="ghint">'+(p.pn?'Periodo preso dal nome del file: controlla che sia giusto. ':'')+'Indica da quando a quando gli ordini sono stati <b>inseriti</b> (non consegnati). Meglio un mese intero alla volta. I dati già presenti in questo periodo vengono sostituiti, quelli degli altri periodi restano.</p></div>'
     +'<h3 class="vh">Clienti trovati in rubrica ('+ok.length+')</h3><div class="vlist">'+(ok.map(line).join('')||'<p class="ghint">Nessun cliente abbinato automaticamente.</p>')+'</div>'
     +'<h3 class="vh">Nel file ma non in rubrica ('+no.length+')</h3><p class="ghint">Vengono ignorati. Se uno è un tuo cliente scritto in modo diverso, scegli qui sotto chi è: la prossima volta lo riconosce da solo.</p><div class="vlist">'+no.slice(0,25).map(line).join('')+(no.length>25?'<p class="ghint">…e altri '+(no.length-25)+' meno rilevanti, ignorati.</p>':'')+'</div>'
     +'<p class="ghint">Il file non viene salvato: restano solo i dati dei clienti che confermi.</p>'
@@ -2015,18 +2063,8 @@ function vPreview(){
   openSheet('Controlla l\'abbinamento',body);
   var sh=$('.sheet');if(sh)sh.classList.add('wide');
 }
-async function vApply(){
-  var p=VPLAN;if(!p)return;
-  var btn=$('[data-act="ana-go"]');if(btn){btn.disabled=true;btn.textContent='Importo…';}
-  var asg=new Map(),aliasAdd=new Map();
-  Array.prototype.slice.call(document.querySelectorAll('.vsel')).forEach(function(s){
-    var n=p.names[+s.dataset.i];if(!n||!s.value)return;
-    asg.set(n.name,s.value);
-    var c=S.clienti.find(function(x){return x.id===s.value;});
-    if(c){var ks=[vKey(c.nome)].concat((c.alias||[]).map(vKey));if(ks.indexOf(vKey(n.name))<0){var l=aliasAdd.get(c.id)||[];l.push(n.name);aliasAdd.set(c.id,l);}}
-  });
-  var pda=($('#vp-da')||{}).value,pa=($('#vp-a')||{}).value,td0=todayStr();
-  if(!pda||!pa||pda>pa){toast('Indica il periodo: dal … al … (la prima data deve venire prima della seconda).');if(btn){btn.disabled=false;btn.textContent='Importa';}return;}
+async function vCommit(p,asg,aliasAdd,pda,pa){
+  var td0=todayStr();
   if(pa>td0)pa=td0;if(pda>pa)pda=pa;
   var single=pda.slice(0,7)===pa.slice(0,7);
   p.rows.forEach(function(r){r.d=single?pda:(r.dc<pda?pda:r.dc>pa?pa:r.dc);});
@@ -2046,14 +2084,80 @@ async function vApply(){
   });
   var meta=anaMeta(),da=pda,a=pa;
   if(meta&&meta.da&&meta.da<da)da=meta.da;if(meta&&meta.a&&meta.a>a)a=meta.a;
-  docs.push({id:'_meta',da:da,a:a,per:((meta&&meta.per)||[]).concat([[pda,pa]]),log:((meta&&meta.log)||[]).concat([{q:new Date().toISOString(),f:p.file||'',da:pda,a:pa,n:p.rows.filter(function(r){return asg.has(r.nome);}).length,c:groups.size}]),caricato:new Date().toISOString()});
+  var nrows=p.rows.filter(function(r){return asg.has(r.nome);}).length;
+  docs.push({id:'_meta',da:da,a:a,per:((meta&&meta.per)||[]).concat([[pda,pa]]),log:((meta&&meta.log)||[]).concat([{q:new Date().toISOString(),f:p.file||'',da:pda,a:pa,n:nrows,c:groups.size}]),caricato:new Date().toISOString()});
+  var cs=[];if(aliasAdd)aliasAdd.forEach(function(names,cid){var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;var o=clone(c);o.alias=(o.alias||[]).concat(names.filter(function(n){return (o.alias||[]).indexOf(n)<0;}));cs.push(o);});
+  await putMany('vendite',docs);await delMany('vendite',dels);if(cs.length)await putMany('clienti',cs);
+  return {ng:groups.size,nr:nrows,da:pda,a:pa};
+}
+async function vApply(){
+  var p=VPLAN;if(!p)return;
+  var btn=$('[data-act="ana-go"]');if(btn){btn.disabled=true;btn.textContent='Importo…';}
+  var asg=new Map(),aliasAdd=new Map();
+  Array.prototype.slice.call(document.querySelectorAll('.vsel')).forEach(function(s){
+    var n=p.names[+s.dataset.i];if(!n||!s.value)return;
+    asg.set(n.name,s.value);
+    var c=S.clienti.find(function(x){return x.id===s.value;});
+    if(c){var ks=[vKey(c.nome)].concat((c.alias||[]).map(vKey));if(ks.indexOf(vKey(n.name))<0){var l=aliasAdd.get(c.id)||[];l.push(n.name);aliasAdd.set(c.id,l);}}
+  });
+  var pda=($('#vp-da')||{}).value,pa=($('#vp-a')||{}).value;
+  if(!pda||!pa||pda>pa){toast('Indica il periodo: dal … al … (la prima data deve venire prima della seconda).');if(btn){btn.disabled=false;btn.textContent='Importa';}return;}
   try{
-    var cs=[];aliasAdd.forEach(function(names,cid){var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;var o=clone(c);o.alias=(o.alias||[]).concat(names.filter(function(n){return (o.alias||[]).indexOf(n)<0;}));cs.push(o);});
-    await putMany('vendite',docs);await delMany('vendite',dels);if(cs.length)await putMany('clienti',cs);
-    closeSheet();var nr=0;groups.forEach(function(r){nr+=r.length;});
-    toast(groups.size+' clienti aggiornati, '+nr.toLocaleString('it-IT')+' righe');
+    var r=await vCommit(p,asg,aliasAdd,pda,pa);
+    closeSheet();toast(r.ng+' clienti aggiornati, '+r.nr.toLocaleString('it-IT')+' righe');
   }catch(e){console.error(e);toast('Importazione non riuscita. Riprova.');}
   VPLAN=null;
+}
+/* --- caricamento di più file insieme --- */
+async function handleVBatch(files){
+  if(!window.XLSX){toast('Lettura Excel non disponibile: controlla la connessione.');return;}
+  var items=files.map(function(f){return {f:f,per:vPerName(f.name)};});
+  var good=items.filter(function(x){return x.per;}).sort(function(a,b){return a.per[0]<b.per[0]?-1:1;});
+  var res=[],unm=new Map(),td0=todayStr();
+  items.filter(function(x){return !x.per;}).forEach(function(x){res.push({f:x.f.name,err:'non riconosco il periodo dal nome'});});
+  openSheet('Importazione in corso',"<p class=\"ghint\" id=\"vb-st\">Preparo "+good.length+" file…</p><div class=\"vbar\"><i id=\"vb-b\" style=\"width:0%\"></i></div>");
+  for(var i=0;i<good.length;i++){
+    var it=good[i],st=$('#vb-st'),bar=$('#vb-b');
+    if(st)st.textContent='File '+(i+1)+' di '+good.length+': '+it.f.name;
+    if(bar)bar.style.width=Math.round(i/good.length*100)+'%';
+    try{
+      if(it.per[0]>td0){res.push({f:it.f.name,err:'periodo nel futuro'});continue;}
+      var buf=await it.f.arrayBuffer(),wb=XLSX.read(buf,{type:'array',cellDates:true}),p=vParse(wb);
+      if(p.err){res.push({f:it.f.name,err:p.err});continue;}
+      p.file=it.f.name;
+      var asg=new Map();
+      p.names.forEach(function(n){var m=vAutoMatch(n.name);if(m)asg.set(n.name,m.cid);else{var u=unm.get(n.name)||{name:n.name,t:0};u.t+=n.t;unm.set(n.name,u);}});
+      var r=await vCommit(p,asg,null,it.per[0],it.per[1]);
+      res.push({f:it.f.name,da:r.da,a:r.a,nr:r.nr,ng:r.ng});
+    }catch(e){console.error(e);res.push({f:it.f.name,err:'file non leggibile'});}
+  }
+  var okn=res.filter(function(x){return !x.err;}),ko=res.filter(function(x){return x.err;});
+  var um=Array.from(unm.values()).sort(function(a,b){return b.t-a.t;}).slice(0,10);
+  var body='<p><b>'+okn.length+' file importati</b>'+(ko.length?', '+ko.length+' non importati':'')+'.</p>'
+    +(okn.length?'<ul class="list vlog">'+okn.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.f)+'</span><span class="s">Dal '+esc(fmtIT(x.da))+' al '+esc(fmtIT(x.a))+' · '+x.nr.toLocaleString('it-IT')+' righe · '+x.ng+' clienti</span></div></li>';}).join('')+'</ul>':'')
+    +(ko.length?'<h3 class="vh">Non importati</h3><ul class="list vlog">'+ko.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.f)+'</span><span class="s">'+esc(x.err)+'</span></div></li>';}).join('')+'</ul><p class="ghint">Rinomina i file così: <b>2025-01.xlsx</b> (anno-mese) oppure <b>01-01-2025_31-01-2025.xlsx</b>.</p>':'')
+    +(um.length?'<h3 class="vh">Nei file ma non in rubrica (ignorati)</h3><p class="ghint">Se uno è un tuo cliente scritto in modo diverso, caricalo una volta da solo: potrai abbinarlo e dalle volte dopo verrà riconosciuto.</p><ul class="list vlog">'+um.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.name)+'</span><span class="s">'+eur0(x.t)+' in totale</span></div></li>';}).join('')+'</ul>':'')
+    +'<div class="actions"><button type="button" class="btn primary" data-act="close">Chiudi</button></div>';
+  openSheet('Importazione completata',body);
+  var sh=$('.sheet');if(sh)sh.classList.add('wide');
+}
+/* --- cancellare un caricamento --- */
+async function vDelLoad(i){
+  var m=anaMeta(),L=(m&&m.log)||[],e=L[i];if(!e)return;
+  var docs=[],dels=[];
+  S.vendite.forEach(function(d){
+    if(!d.clienteId)return;
+    var rr=d.righe||[],keep=rr.filter(function(r){return !(r[1]>=e.da&&r[1]<=e.a);});
+    if(keep.length===rr.length)return;
+    if(keep.length)docs.push({id:d.id,clienteId:d.clienteId,anno:d.anno,righe:keep});else dels.push(d.id);
+  });
+  var per=(m.per||[]).slice(),pi=-1;
+  per.forEach(function(p,k){if(pi<0&&p[0]===e.da&&p[1]===e.a)pi=k;});if(pi>=0)per.splice(pi,1);
+  var log=L.slice();log.splice(i,1);
+  var da='',a='';per.forEach(function(p){if(!da||p[0]<da)da=p[0];if(!a||p[1]>a)a=p[1];});
+  docs.push({id:'_meta',da:da,a:a,per:per,log:log,caricato:m.caricato||new Date().toISOString()});
+  try{await putMany('vendite',docs);await delMany('vendite',dels);toast('Caricamento cancellato');vLog();}
+  catch(err){console.error(err);toast('Cancellazione non riuscita. Riprova.');}
 }
 
 /* ---------- cadenze di visita ---------- */
@@ -2600,6 +2704,10 @@ var H={
     }catch(e){console.error(e);toast('Invio non riuscito: controlla la funzione su Supabase.');}
   },
   'ana-log':function(){vLog();},
+  'ana-del':function(el){
+    if(!el.classList.contains('armed')){el.classList.add('armed');el.dataset.orig=el.textContent;el.textContent='Conferma';setTimeout(function(){if(el.isConnected){el.classList.remove('armed');el.textContent=el.dataset.orig;}},4000);return;}
+    vDelLoad(+el.dataset.i);
+  },
   'ana-reset':function(el){
     if(!el.classList.contains('armed')){el.classList.add('armed');el.dataset.orig=el.textContent;el.textContent='Tocca ancora per confermare';setTimeout(function(){if(el.isConnected){el.classList.remove('armed');el.textContent=el.dataset.orig;}},4000);return;}
     delMany('vendite',S.vendite.map(function(d){return d.id;})).then(function(){toast('Dati di analisi cancellati');});
@@ -2655,7 +2763,7 @@ document.addEventListener('change',function(e){
 document.addEventListener('submit',function(e){if(e.target&&e.target.id==='auth-form'){e.preventDefault();doSignIn();}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#scrim'))closeSheet();});
 $('#file').addEventListener('change',function(e){handleFile(e.target.files&&e.target.files[0]);});
-$('#file-v').addEventListener('change',function(e){handleVFile(e.target.files&&e.target.files[0]);});
+$('#file-v').addEventListener('change',function(e){var fs=Array.prototype.slice.call(e.target.files||[]);if(fs.length>1)handleVBatch(fs);else if(fs.length)handleVFile(fs[0]);});
 
 init();
 })();
