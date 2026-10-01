@@ -375,7 +375,9 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .ac-h .t{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ac-v{font-size:22px;font-weight:700;letter-spacing:-.01em}
 .ac-v small{font-size:12px;color:var(--muted);font-weight:500}
-.spark{width:100%;height:34px;color:var(--new)}
+.spark{width:100%;height:34px}
+.spark .sl{stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.spark .l2{stroke:var(--new);stroke-width:2.4}.spark .l1{stroke:#D98A00}.spark .l0{stroke:#8A8F9C;stroke-dasharray:3 2}
 .ac-f{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2px 8px;font-size:12.5px;color:var(--muted)}
 .acard>*{min-width:0}
 .ac-h .dl{flex:none}
@@ -936,7 +938,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-g</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-h</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function renderHeader(){
@@ -1824,14 +1826,20 @@ function vSum(rows){
   return o;
 }
 function vSpark(rows){
-  var T=vToday(),m=new Array(12).fill(0),mi=+T.t.slice(5,7)-1;
-  rows.forEach(function(r){
-    if(r.d>T.t)return;
-    var y=+r.d.slice(0,4),mm=+r.d.slice(5,7)-1,off=(T.Y-y)*12+(mi-mm);
-    if(off>=0&&off<12)m[11-off]+=r.t;
+  var T=vToday(),ys=[T.Y-2,T.Y-1,T.Y],V={},mt=anaMeta(),per=(mt&&mt.per)||[],cm=+T.t.slice(5,7)-1;
+  ys.forEach(function(y){V[y]=new Array(12).fill(null);});
+  function cov(y,m){var k=y+'-'+('0'+(m+1)).slice(-2);return per.some(function(p){return p[0].slice(0,7)<=k&&p[1].slice(0,7)>=k;});}
+  rows.forEach(function(r){if(r.d>T.t)return;var y=+r.d.slice(0,4),m=+r.d.slice(5,7)-1;if(V[y])V[y][m]=(V[y][m]||0)+r.t;});
+  ys.forEach(function(y){for(var m=0;m<12;m++){if(V[y][m]==null&&cov(y,m)&&(y<T.Y||m<=cm))V[y][m]=0;}});
+  var all=[];ys.forEach(function(y){V[y].forEach(function(v){if(v!=null)all.push(v);});});
+  var mx=Math.max.apply(null,all.concat([1])),svg='<svg class="spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">';
+  ys.forEach(function(y,k){
+    var seg=[],cur=[];
+    V[y].forEach(function(v,i){if(v==null){if(cur.length)seg.push(cur);cur=[];}else cur.push((4+i*(112/11)).toFixed(1)+','+(28-v/mx*24).toFixed(1));});
+    if(cur.length)seg.push(cur);
+    seg.forEach(function(sg){svg+=sg.length>1?'<polyline class="sl l'+k+'" points="'+sg.join(' ')+'" fill="none" vector-effect="non-scaling-stroke"/>':'';});
   });
-  var mx=Math.max.apply(null,m.concat([1])),pts=m.map(function(v,i){return (4+i*(112/11)).toFixed(1)+','+(28-v/mx*24).toFixed(1);}).join(' ');
-  return '<svg class="spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true"><polyline points="'+pts+'" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>';
+  return svg+'</svg>';
 }
 function vCards(){
   var T=vToday(),all=vAll(),out=[];
