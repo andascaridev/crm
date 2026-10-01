@@ -407,7 +407,9 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .row.inc>.row-main>.t,.row.inc .c-name{color:var(--danger)}
 .inc-t,.inc-tag{color:var(--danger) !important;font-weight:600}
 .inc-tag{font-size:13px}
-.row-main .inc-t{white-space:normal;overflow:visible}
+.row-main .inc-t{white-space:normal;overflow:visible;font-size:12.5px}
+.row.inc>.row-main>.t{font-weight:800}
+@media (min-width:1024px){.crow .row-main .s.inc-t{display:block}}
 .banner.inc-b{background:var(--danger-bg);color:var(--danger)}
 .banner.inc-b button{color:var(--danger);font-weight:700;text-decoration:underline}
 .chip[data-v="completare"]{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,var(--line))}
@@ -880,7 +882,7 @@ function missingC(c){
   if(!rs.length)m.push('referente');
   return m;
 }
-function incomplete(c){return missingC(c).length>=3;}
+function incomplete(c){return missingC(c).length>=2;}
 function clienteRow(c,I){
   var acts=I.ta.get(c.id)||[],last=acts.reduce(function(m,a){return a.data>m?a.data:m;},'');
   var tds=(I.tt.get(c.id)||[]).filter(function(x){return !x.fatto;}),t=todayStr();
@@ -910,7 +912,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-c</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-d</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function renderHeader(){
