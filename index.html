@@ -403,6 +403,10 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .vsel{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 10px;font-size:15px;color:var(--ink)}
 .vh{font-size:15px;margin:16px 0 2px}
 .sheet.wide{max-width:720px}
+.vper{background:var(--surface-2);border-radius:14px;padding:12px 14px;margin:6px 0 4px}
+.vper-r{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.vper-r label{display:grid;gap:4px;font-size:13px;color:var(--muted);flex:1;min-width:140px}
+.vper-r input{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);padding:0 10px;font-size:16px}
 
 @media (max-width:600px){.kpis.a4 .kpi b,.kpis.a3 .kpi b{font-size:21px}.kpis.a4 .kpi,.kpis.a3 .kpi{padding-inline:12px}}
 .kpis+.alertbar{margin-top:14px}
@@ -885,7 +889,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-a</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-b</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function renderHeader(){
@@ -1736,10 +1740,18 @@ function dltTxt(d,cur){
   return '<span class="dl '+(p>0?'up':p<0?'down':'')+'">'+(p>0?'▲ +'+p:p<0?'▼ '+Math.abs(p):'= 0')+'%</span>';
 }
 function vToday(){var t=todayStr();return {t:t,Y:+t.slice(0,4),md:t.slice(5)};}
+function vM(){var T=vToday(),m=anaMeta();if(m&&m.a&&m.a.slice(0,4)==String(T.Y))return +(m.a<T.t?m.a:T.t).slice(5,7);return +T.t.slice(5,7);}
+function vCover(m){
+  if(!m)return '';
+  if(!m.per||!m.per.length)return 'Dati dal '+fmtIT(m.da)+' al '+fmtIT(m.a);
+  var set={};
+  m.per.forEach(function(p){var y=+p[0].slice(0,4),mo=+p[0].slice(5,7),y2=+p[1].slice(0,4),m2=+p[1].slice(5,7);while(y<y2||(y===y2&&mo<=m2)){(set[y]=set[y]||{})[mo]=1;mo++;if(mo>12){mo=1;y++;}}});
+  return 'Mesi caricati · '+Object.keys(set).sort().map(function(y){var ms=Object.keys(set[y]).map(Number).sort(function(a,b){return a-b;}),out=[],st=ms[0],pv=ms[0];for(var i=1;i<=ms.length;i++){if(ms[i]!==pv+1){out.push(st===pv?MESI[st-1]:MESI[st-1]+'–'+MESI[pv-1]);st=ms[i];}pv=ms[i];}return y+': '+out.join(', ');}).join(' · ');
+}
 function vInP(d,p){
   var T=vToday(),y=+d.slice(0,4);
   if(p==='ytd')return y===T.Y&&d<=T.t;
-  if(p==='prevytd')return y===T.Y-1&&d.slice(5)<=T.md;
+  if(p==='prevytd')return y===T.Y-1&&+d.slice(5,7)<=vM();
   if(p==='prev')return y===T.Y-1;
   return d<=T.t;
 }
@@ -1756,6 +1768,7 @@ function vSum(rows){
   var o={t:0,co:0,tc:0,n:0};
   rows.forEach(function(r){o.t+=r.t;o.n++;if(r.co!=null){o.co+=r.co;o.tc+=r.t;}});
   o.m=o.tc>0?(o.tc-o.co)/o.tc:null;
+  o.r=(o.tc>0&&o.co>0)?(o.tc-o.co)/o.co:null;
   return o;
 }
 function vSpark(rows){
@@ -1794,7 +1807,7 @@ function anaCardsHtml(L){
   return '<div class="agrid">'+L.map(function(x){
     return '<button class="acard" data-act="ana-open" data-id="'+esc(x.c.id)+'"><div class="ac-h"><span class="t">'+esc(x.c.nome)+'</span>'+dltTxt(x.d,x.cur.t)+'</div>'
       +'<div class="ac-v">'+eur0(x.cur.t)+'<small> quest\'anno</small></div>'+vSpark(x.rows)
-      +'<div class="ac-f"><span>Stesso periodo '+(T.Y-1)+': '+eur0(x.prv.t)+'</span><span>'+(x.cur.m!=null?'Margine '+pct0(x.cur.m):'')+'</span></div></button>';
+      +'<div class="ac-f"><span>Stesso periodo '+(T.Y-1)+': '+eur0(x.prv.t)+'</span><span>'+(x.cur.m!=null?'Marg. '+pct0(x.cur.m)+(x.cur.r!=null?' · Ric. '+pct0(x.cur.r):''):'')+'</span></div></button>';
   }).join('')+'</div>';
 }
 function anaMeta(){var m=S.vendite.find(function(d){return d.id==='_meta';});return m||null;}
@@ -1803,19 +1816,19 @@ function viewAnalisi(){
   var up='<input type="file" id="file-v" accept=".xlsx,.xls" hidden>';
   if(!S.vOk)return '<div class="empty"><h2>Manca un passaggio su Supabase</h2><p>Per usare l\'analisi vendite serve creare una tabella una volta sola: apri Supabase → SQL Editor, incolla il contenuto del file <b>VENDITE-supabase.sql</b> e premi Run. Poi ricarica questa pagina.</p></div>';
   var L=vCards(),meta=anaMeta();
-  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><span class="muted">'+(meta&&meta.da?'Dati dal '+esc(fmtIT(meta.da))+' al '+esc(fmtIT(meta.a))+' · caricato il '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini: viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
+  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><span class="muted">'+(meta&&meta.da?esc(vCover(meta))+' · ultimo caricamento '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini: viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
   if(!L.length)return head+'<div class="empty"><h2>Ancora nessun dato</h2><p>Carica il file Excel degli ordini (ragione sociale, quantità, prezzo netto). Verranno considerati solo i clienti che hai in rubrica.</p></div>';
   var T=vToday(),cur=0,prv=0,co=0,tc=0,att=0,calo=0;
   L.forEach(function(x){cur+=x.cur.t;prv+=x.prv.t;co+=x.cur.co;tc+=x.cur.tc;if(x.cur.t>0)att++;if(x.d!=null&&x.d<0)calo++;});
-  var d=dlt(cur,prv),mg=tc>0?(tc-co)/tc:null;
+  var d=dlt(cur,prv),mg=tc>0?(tc-co)/tc:null,rc=(tc>0&&co>0)?(tc-co)/co:null;
   var tiles='<div class="kpis a4"><div class="kpi"><span>Fatturato '+T.Y+' (a oggi)</span><b>'+eur0(cur)+'</b><small>'+(d==null?'&nbsp;':(d>=0?'▲ +':'▼ ')+Math.abs(Math.round(d*100))+'% vs '+(T.Y-1)+' stesso periodo')+'</small></div>'
     +'<div class="kpi"><span>Margine medio</span><b>'+(mg==null?'—':pct1(mg))+'</b><small>sul venduto '+T.Y+'</small></div>'
-    +'<div class="kpi"><span>Clienti attivi</span><b>'+att+'</b><small>con ordini nel '+T.Y+'</small></div>'
-    +'<div class="kpi"><span>Clienti in calo</span><b>'+calo+'</b><small>rispetto al '+(T.Y-1)+'</small></div></div>';
+    +'<div class="kpi"><span>Ricarico medio</span><b>'+(rc==null?'—':pct1(rc))+'</b><small>sul costo di acquisto</small></div>'
+    +'<div class="kpi"><span>Clienti attivi</span><b>'+att+'</b><small>'+calo+' in calo vs '+(T.Y-1)+'</small></div></div>';
   var s=S.ui.anaS||'fatt';
   var ctl='<div class="vrow"><div class="search">'+ic('search',20)+'<input id="an-q" type="search" placeholder="Cerca un cliente…" value="'+esc(S.ui.anaQ||'')+'" autocomplete="off" aria-label="Cerca cliente"></div></div>'
     +'<div class="chips"><span class="chips-l">Ordina per</span>'+chip('ana-sort','fatt','Fatturato',s==='fatt')+chip('ana-sort','var','Variazione',s==='var')+chip('ana-sort','marg','Margine',s==='marg')+chip('ana-sort','az','A–Z',s==='az')+'</div>';
-  var foot='<p class="chart-note">Confronto: dal 1° gennaio a oggi contro lo stesso periodo dell\'anno scorso. Contano le righe d\'ordine con data di consegna richiesta; sono escluse spese di trasporto e anticipi. Margine = (prezzo netto − costo) / prezzo netto.</p><button class="btn ghost" data-act="ana-reset">Cancella tutti i dati di analisi</button>';
+  var foot='<p class="chart-note">Confronto: i mesi caricati di quest\'anno contro gli stessi mesi dell\'anno scorso. Ogni file caricato vale per il periodo che indichi tu (data di inserimento degli ordini); sono escluse spese di trasporto e anticipi. Margine = (prezzo netto − costo) / prezzo netto. Ricarico = (prezzo netto − costo) / costo.</p><button class="btn ghost" data-act="ana-reset">Cancella tutti i dati di analisi</button>';
   return head+tiles+ctl+'<div id="an-list">'+anaCardsHtml(L)+'</div>'+foot;
 }
 function vMonthChart(rows){
@@ -1856,20 +1869,20 @@ function viewAnaDetail(cid){
   var yrs=new Map();rows.forEach(function(r){if(r.d>T.t)return;var y=r.d.slice(0,4),e=yrs.get(y)||{t:0,co:0,tc:0};e.t+=r.t;if(r.co!=null){e.co+=r.co;e.tc+=r.t;}yrs.set(y,e);});
   var yl=Array.from(yrs.entries()).sort(function(a,b){return a[0]<b[0]?-1:1;});
   var fut=rows.filter(function(r){return r.d>T.t;}).reduce(function(s,r){return s+r.t;},0);
-  var plab=P==='ytd'?'Da gennaio '+T.Y+' a oggi':P==='prev'?'Anno '+(T.Y-1)+' intero':'Tutto il periodo caricato';
+  var plab=P==='ytd'?'Da gennaio '+T.Y+' ai mesi caricati':P==='prev'?'Anno '+(T.Y-1)+' intero':'Tutto il periodo caricato';
   var d=cmp?dlt(su.t,cmp.t):null;
   var h='<div class="chips">'+chip('ana-per','ytd','Quest\'anno',P==='ytd')+chip('ana-per','prev','Anno scorso',P==='prev')+chip('ana-per','tutto','Tutto',P==='tutto')+'</div><p class="ghint">'+esc(plab)+'</p>';
   h+='<div class="kpis a3"><div class="kpi"><span>Fatturato</span><b>'+eur0(su.t)+'</b><small>'+(cmp?(d==null?'&nbsp;':(d>=0?'▲ +':'▼ ')+Math.abs(Math.round(d*100))+'% vs '+(T.Y-1)+' stesso periodo'):'&nbsp;')+'</small></div>'
     +'<div class="kpi"><span>Margine</span><b>'+(su.m==null?'—':pct1(su.m))+'</b><small>'+(su.m==null?'&nbsp;':eur0(su.tc-su.co)+' di utile lordo')+'</small></div>'
+    +'<div class="kpi"><span>Ricarico</span><b>'+(su.r==null?'—':pct1(su.r))+'</b><small>sul costo di acquisto</small></div>'
     +'<div class="kpi"><span>Ordini</span><b>'+ol.length+'</b><small>'+pr.length+' righe</small></div>'
     +'<div class="kpi"><span>Valore medio ordine</span><b>'+eur0(avg)+'</b><small>&nbsp;</small></div>'
-    +'<div class="kpi"><span>Ordine maggiore</span><b>'+(best?eur0(best.t):'—')+'</b><small>'+(best?esc(fmtIT(best.d)):'&nbsp;')+'</small></div>'
-    +'<div class="kpi"><span>Prodotti diversi</span><b>'+pl.length+'</b><small>&nbsp;</small></div></div>';
+    +'<div class="kpi"><span>Ordine maggiore</span><b>'+(best?eur0(best.t):'—')+'</b><small>'+(best?esc(fmtIT(best.d)):'&nbsp;')+'</small></div></div>';
   h+='<div class="g2 top"><div><div class="sec-h"><h3>Fatturato mensile · '+T.Y+' contro '+(T.Y-1)+'</h3></div>'+vMonthChart(rows)+'</div>'
-    +'<div><div class="sec-h"><h3>Andamento negli anni</h3></div>'+hbars(yl.map(function(e){var mm=e[1].tc>0?(e[1].tc-e[1].co)/e[1].tc:null;return {l:e[0]+(+e[0]===T.Y?' (a oggi)':''),v:e[1].t,s:eur0(e[1].t)+(mm!=null?' · margine '+pct0(mm):'')};}))+'</div></div>';
+    +'<div><div class="sec-h"><h3>Andamento negli anni</h3></div>'+hbars(yl.map(function(e){var mm=e[1].tc>0?(e[1].tc-e[1].co)/e[1].tc:null,rr=(e[1].tc>0&&e[1].co>0)?(e[1].tc-e[1].co)/e[1].co:null;return {l:e[0]+(+e[0]===T.Y?' (in corso)':''),v:e[1].t,s:eur0(e[1].t)+(mm!=null?' · marg. '+pct0(mm)+' · ric. '+pct0(rr):'')};}))+'</div></div>';
   h+='<div class="g2 top"><div><div class="sec-h"><h3>Cosa compra · categorie</h3></div>'+hbars(cl.map(function(e){return {l:e[0],v:e[1].t,s:eur0(e[1].t)+' · '+pct0(e[1].t/Math.max(1,su.t))};}))+'</div>'
-    +'<div><div class="sec-h"><h3>Prodotti più venduti</h3></div>'+(pl.length?'<ul class="list">'+pl.slice(0,12).map(function(p){var m=p.tc>0?(p.tc-p.co)/p.tc:null;return '<li class="row pr"><div class="row-main"><span class="t">'+esc(p.x||'')+'</span><span class="s">'+p.q.toLocaleString('it-IT',{maximumFractionDigits:2})+' pz · prezzo medio '+(p.q>0?eur2(p.t/p.q):'—')+(m!=null?' · margine '+pct0(m):'')+'</span></div><b class="rv">'+eur0(p.t)+'</b></li>';}).join('')+'</ul>':'<div class="list"><div class="kv"><span class="s">Nessun prodotto in questo periodo.</span></div></div>')+'</div></div>';
-  if(fut>0)h+='<p class="chart-note">Ordini con consegna richiesta dopo oggi: '+eur0(fut)+' (non inclusi nei totali).</p>';
+    +'<div><div class="sec-h"><h3>Prodotti più venduti</h3></div>'+(pl.length?'<ul class="list">'+pl.slice(0,12).map(function(p){var m=p.tc>0?(p.tc-p.co)/p.tc:null,rr=(p.tc>0&&p.co>0)?(p.tc-p.co)/p.co:null;return '<li class="row pr"><div class="row-main"><span class="t">'+esc(p.x||'')+'</span><span class="s">'+p.q.toLocaleString('it-IT',{maximumFractionDigits:2})+' pz · prezzo medio '+(p.q>0?eur2(p.t/p.q):'—')+(m!=null?' · marg. '+pct0(m)+' · ric. '+pct0(rr):'')+'</span></div><b class="rv">'+eur0(p.t)+'</b></li>';}).join('')+'</ul>':'<div class="list"><div class="kv"><span class="s">Nessun prodotto in questo periodo.</span></div></div>')+'</div></div>';
+  if(fut>0)h+='<p class="chart-note">Righe con data futura: '+eur0(fut)+' (non inclusi nei totali).</p>';
   return h+'<p class="chart-note">Il prezzo medio è il totale di riga diviso per la quantità ordinata.</p>';
 }
 /* --- caricamento del file --- */
@@ -1904,9 +1917,8 @@ function vParse(wb){
     var k=(C.o>=0?String(R[C.o]==null?'':R[C.o]).trim():'')+'/'+(C.p>=0?String(R[C.p]==null?'':R[C.p]).trim():'');
     if(k==='/'||seen.has(k))k=k+'#'+r;
     seen.add(k);
-    var row={nome:nome,k:k,d:d,c:cat,q:Math.round(q*1000)/1000,t:Math.round(t*100)/100,co:isNaN(co)?null:Math.round(co*100)/100,x:x.slice(0,70)};
+    var row={nome:nome,k:k,dc:d,c:cat,q:Math.round(q*1000)/1000,t:Math.round(t*100)/100,co:isNaN(co)?null:Math.round(co*100)/100,x:x.slice(0,70)};
     rows.push(row);
-    if(!da||d<da)da=d;if(!a||d>a)a=d;
     var e=names.get(nome);if(!e){e={name:nome,n:0,t:0};names.set(nome,e);}e.n++;e.t+=t;
   }
   return {rows:rows,names:Array.from(names.values()),skip:skip,excl:excl,da:da,a:a};
@@ -1945,7 +1957,9 @@ function vPreview(){
   var p=VPLAN,ok=p.names.filter(function(n){return n.cid;}).sort(function(a,b){return b.t-a.t;}),no=p.names.filter(function(n){return !n.cid;}).sort(function(a,b){return b.t-a.t;});
   var nrows=ok.reduce(function(s,n){return s+n.n;},0);
   function line(n,i){return '<div class="vm"><div class="vm-n"><b>'+esc(n.name)+'</b><small>'+n.n+' righe · '+eur0(n.t)+(n.tipo==='simile'?' · nome simile, controlla':'')+'</small></div><select class="vsel" data-i="'+p.names.indexOf(n)+'" aria-label="Cliente in rubrica">'+vOptions(n.cid)+'</select></div>';}
-  var body='<p class="ghint">Righe lette: <b>'+p.rows.length.toLocaleString('it-IT')+'</b> · dal '+esc(fmtIT(p.da))+' al '+esc(fmtIT(p.a))+'. Escluse spese e anticipi: '+p.excl+'. Righe senza quantità o prezzo: '+p.skip+'.</p>'
+  var mt=anaMeta(),dflA=todayStr(),dflD=(mt&&mt.a&&mt.a<dflA)?addDays(mt.a,1):dflA.slice(0,8)+'01';
+  var body='<p class="ghint">Righe lette: <b>'+p.rows.length.toLocaleString('it-IT')+'</b>. Escluse spese e anticipi: '+p.excl+'. Righe senza quantità o prezzo: '+p.skip+'.</p>'
+    +'<div class="vper"><b>Periodo degli ordini in questo file</b><div class="vper-r"><label>Dal<input type="date" id="vp-da" value="'+dflD+'"></label><label>Al<input type="date" id="vp-a" value="'+dflA+'"></label></div><p class="ghint">Indica da quando a quando gli ordini sono stati <b>inseriti</b> (non consegnati). Meglio un mese intero alla volta. I dati già presenti in questo periodo vengono sostituiti, quelli degli altri periodi restano.</p></div>'
     +'<h3 class="vh">Clienti trovati in rubrica ('+ok.length+')</h3><div class="vlist">'+(ok.map(line).join('')||'<p class="ghint">Nessun cliente abbinato automaticamente.</p>')+'</div>'
     +'<h3 class="vh">Nel file ma non in rubrica ('+no.length+')</h3><p class="ghint">Vengono ignorati. Se uno è un tuo cliente scritto in modo diverso, scegli qui sotto chi è: la prossima volta lo riconosce da solo.</p><div class="vlist">'+no.slice(0,25).map(line).join('')+(no.length>25?'<p class="ghint">…e altri '+(no.length-25)+' meno rilevanti, ignorati.</p>':'')+'</div>'
     +'<p class="ghint">Il file non viene salvato: restano solo i dati dei clienti che confermi.</p>'
@@ -1963,20 +1977,28 @@ async function vApply(){
     var c=S.clienti.find(function(x){return x.id===s.value;});
     if(c){var ks=[vKey(c.nome)].concat((c.alias||[]).map(vKey));if(ks.indexOf(vKey(n.name))<0){var l=aliasAdd.get(c.id)||[];l.push(n.name);aliasAdd.set(c.id,l);}}
   });
+  var pda=($('#vp-da')||{}).value,pa=($('#vp-a')||{}).value,td0=todayStr();
+  if(!pda||!pa||pda>pa){toast('Indica il periodo: dal … al … (la prima data deve venire prima della seconda).');if(btn){btn.disabled=false;btn.textContent='Importa';}return;}
+  if(pa>td0)pa=td0;if(pda>pa)pda=pa;
+  var single=pda.slice(0,7)===pa.slice(0,7);
+  p.rows.forEach(function(r){r.d=single?pda:(r.dc<pda?pda:r.dc>pa?pa:r.dc);});
   var groups=new Map();
   p.rows.forEach(function(r){var cid=asg.get(r.nome);if(!cid)return;var a=groups.get(cid);if(!a){a=[];groups.set(cid,a);}a.push(r);});
+  var cids=new Set(groups.keys());
+  S.vendite.forEach(function(d){if(d.clienteId&&(d.righe||[]).some(function(r){return r[1]>=pda&&r[1]<=pa;}))cids.add(d.clienteId);});
   var docs=[],dels=[];
-  groups.forEach(function(rows,cid){
+  cids.forEach(function(cid){
+    var rows=groups.get(cid)||[];
     var old=S.vendite.filter(function(d){return d.clienteId===cid;}),map=new Map();
-    old.forEach(function(d){(d.righe||[]).forEach(function(r){map.set(r[0],r);});});
+    old.forEach(function(d){(d.righe||[]).forEach(function(r){if(r[1]>=pda&&r[1]<=pa)return;map.set(r[0],r);});});
     rows.forEach(function(r){map.set(r.k,[r.k,r.d,r.c,r.q,r.t,r.co,r.x]);});
     var by={};map.forEach(function(r){var y=r[1].slice(0,4);(by[y]=by[y]||[]).push(r);});
     var mine=[];Object.keys(by).forEach(function(y){var id=cid+'|'+y;mine.push(id);docs.push({id:id,clienteId:cid,anno:+y,righe:by[y]});});
     old.forEach(function(d){if(mine.indexOf(d.id)<0)dels.push(d.id);});
   });
-  var meta=anaMeta(),da=p.da,a=p.a,td=todayStr();if(a>td)a=td;
-  if(meta&&meta.da&&meta.da<da)da=meta.da;if(meta&&meta.a&&meta.a>a&&meta.a<=td)a=meta.a;
-  docs.push({id:'_meta',da:da,a:a,caricato:new Date().toISOString()});
+  var meta=anaMeta(),da=pda,a=pa;
+  if(meta&&meta.da&&meta.da<da)da=meta.da;if(meta&&meta.a&&meta.a>a)a=meta.a;
+  docs.push({id:'_meta',da:da,a:a,per:((meta&&meta.per)||[]).concat([[pda,pa]]),caricato:new Date().toISOString()});
   try{
     var cs=[];aliasAdd.forEach(function(names,cid){var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;var o=clone(c);o.alias=(o.alias||[]).concat(names.filter(function(n){return (o.alias||[]).indexOf(n)<0;}));cs.push(o);});
     await putMany('vendite',docs);await delMany('vendite',dels);if(cs.length)await putMany('clienti',cs);
