@@ -940,7 +940,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-j</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-l</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function renderHeader(){
@@ -1816,7 +1816,7 @@ function vAll(){
   S.vendite.forEach(function(d){
     if(d.id==='_meta'||!d.clienteId)return;
     var a=m.get(d.clienteId);if(!a){a=[];m.set(d.clienteId,a);}
-    (d.righe||[]).forEach(function(r){a.push({k:r[0],d:r[1],c:r[2],q:r[3],t:r[4],co:r[5],x:r[6]});});
+    (d.righe||[]).forEach(function(r){a.push({k:r[0],d:r[1],c:r[2],q:r[3],t:r[4],co:(r[5]!=null&&r[5]>6*r[4])?null:r[5],cr:r[5],x:r[6]});});
   });
   return m;
 }
@@ -2155,15 +2155,15 @@ async function handleVBatch(files){
 }
 /* --- righe con margine anomalo --- */
 function vNeg(){
-  var all=vAll(),L=[],tot=0,nn=0,loss=0;
+  var all=vAll(),L=[],tot=0,nn=0,loss=0,nex=0;
   all.forEach(function(rows,cid){
     var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;
-    rows.forEach(function(r){if(!vInP(r.d,'ytd')||r.co==null)return;tot++;if(r.co>r.t){nn++;loss+=r.co-r.t;L.push({n:c.nome,x:r.x,t:r.t,co:r.co,q:r.q,k:r.k,d:r.d});}});
+    rows.forEach(function(r){if(!vInP(r.d,'ytd')||r.cr==null)return;tot++;if(r.cr>r.t){nn++;var ex=r.co==null;if(ex)nex++;else loss+=r.cr-r.t;L.push({n:c.nome,x:r.x,t:r.t,co:r.cr,q:r.q,k:r.k,d:r.d,ex:ex});}});
   });
   L.sort(function(a,b){return (b.co-b.t)-(a.co-a.t);});
   var sp=0,sc=0;all.forEach(function(rows){rows.forEach(function(r){if(vInP(r.d,'ytd')&&r.co!=null){sp+=r.t;sc+=r.co;}});});
-  var body='<p class="ghint">Quest\'anno: ricavi '+eur0(sp)+' · costi '+eur0(sc)+' su '+tot.toLocaleString('it-IT')+' righe. Righe con costo maggiore del prezzo: <b>'+nn.toLocaleString('it-IT')+'</b> (perdita complessiva '+eur0(loss)+').</p>'
-   +(L.length?'<h3 class="vh">Le 15 peggiori</h3><ul class="list vlog">'+L.slice(0,15).map(function(o){return '<li class="row"><div class="row-main"><span class="t">'+esc(o.n)+' · '+esc(o.x||'')+'</span><span class="s">Ordine '+esc(o.k.split('#')[0])+' · '+esc(fmtIT(o.d))+' · '+o.q.toLocaleString('it-IT',{maximumFractionDigits:2})+' pz</span><span class="s warnt">Prezzo '+eur0(o.t)+' · costo '+eur0(o.co)+'</span></div></li>';}).join('')+'</ul>':'<p class="ghint">Nessuna riga con costo maggiore del prezzo.</p>')
+  var body='<p class="ghint">Quest\'anno (righe valide): ricavi '+eur0(sp)+' · costi '+eur0(sc)+' su '+tot.toLocaleString('it-IT')+' righe. Righe con costo maggiore del prezzo: <b>'+nn.toLocaleString('it-IT')+'</b> (perdita reale '+eur0(loss)+').'+(nex?' <b>'+nex+' righe con costo oltre 6 volte il prezzo sono considerate errori dei file e <u>escluse</u> dal margine</b> (il loro fatturato resta).':'')+'</p>'
+   +(L.length?'<h3 class="vh">Le 15 peggiori</h3><ul class="list vlog">'+L.slice(0,15).map(function(o){return '<li class="row"><div class="row-main"><span class="t">'+esc(o.n)+' · '+esc(o.x||'')+'</span><span class="s">Ordine '+esc(o.k.split('#')[0])+' · '+esc(fmtIT(o.d))+' · '+o.q.toLocaleString('it-IT',{maximumFractionDigits:2})+' pz</span><span class="s warnt">Prezzo '+eur0(o.t)+' · costo '+eur0(o.co)+(o.ex?' · ESCLUSA dal margine (costo anomalo)':'')+'</span></div></li>';}).join('')+'</ul>':'<p class="ghint">Nessuna riga con costo maggiore del prezzo.</p>')
    +'<div class="actions"><button type="button" class="btn primary" data-act="close">Chiudi</button></div>';
   openSheet('Dettaglio margine',body);
 }
