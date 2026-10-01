@@ -397,6 +397,7 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .vc text.mx{font-size:12px;font-weight:600}
 .vleg i.l2{background:var(--new)}.vleg i.l1{background:#D98A00}.vleg i.l0{background:#8A8F9C}
 .vleg i.l0,.vleg i.l1,.vleg i.l2{width:16px;height:4px;border-radius:2px;vertical-align:middle}
+.warnt{color:var(--warn);font-weight:600}
 .vbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
 .vbar i{display:block;height:100%;background:var(--new);transition:width .25s}
 .btn.dang.armed{background:var(--danger);color:var(--on-danger);border-color:var(--danger)}
@@ -938,7 +939,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-h</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.10-i</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function renderHeader(){
@@ -1873,7 +1874,7 @@ function anaCardsHtml(L){
 function fmtQ(iso){var d=new Date(iso);if(isNaN(d))return '';return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+' alle '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function vLog(){
   var m=anaMeta(),L=(m&&m.log)||[],body;
-  if(L.length)body='<ul class="list vlog">'+L.map(function(e,i){return {e:e,i:i};}).reverse().map(function(o){var e=o.e;return '<li class="row"><div class="row-main"><span class="t">'+esc(e.f||'File senza nome')+'</span><span class="s">Ordini dal '+esc(fmtIT(e.da))+' al '+esc(fmtIT(e.a))+'</span><span class="s">Caricato il '+esc(fmtQ(e.q))+' · '+(e.n||0).toLocaleString('it-IT')+' righe · '+(e.c||0)+' clienti</span></div><button type="button" class="btn ghost sm dang" data-act="ana-del" data-i="'+o.i+'">Cancella</button></li>';}).join('')+'</ul><p class="ghint">"Cancella" elimina i dati di quel periodo (tutti i clienti). Utile se hai importato una data sbagliata: poi ricarica il file giusto.</p>';
+  if(L.length)body='<ul class="list vlog">'+L.map(function(e,i){return {e:e,i:i};}).reverse().map(function(o){var e=o.e;return '<li class="row"><div class="row-main"><span class="t">'+esc(e.f||'File senza nome')+'</span><span class="s">Ordini dal '+esc(fmtIT(e.da))+' al '+esc(fmtIT(e.a))+'</span><span class="s">Caricato il '+esc(fmtQ(e.q))+' · '+(e.n||0).toLocaleString('it-IT')+' righe · '+(e.c||0)+' clienti</span>'+(e.tn>0?'<span class="s warnt">Non abbinato: '+eur0(e.tn)+' su '+eur0(e.tt)+' ('+Math.round(e.tn/Math.max(1,e.tt)*100)+'%)</span>':'')+'</div><button type="button" class="btn ghost sm dang" data-act="ana-del" data-i="'+o.i+'">Cancella</button></li>';}).join('')+'</ul><p class="ghint">"Cancella" elimina i dati di quel periodo (tutti i clienti). Utile se hai importato una data sbagliata: poi ricarica il file giusto.</p>';
   else if(m&&m.per&&m.per.length)body='<ul class="list vlog">'+m.per.slice().reverse().map(function(p){return '<li class="row"><div class="row-main"><span class="t">Caricamento</span><span class="s">Ordini dal '+esc(fmtIT(p[0]))+' al '+esc(fmtIT(p[1]))+'</span></div></li>';}).join('')+'</ul>';
   else body='<p class="ghint">Nessun file caricato finora.</p>';
   openSheet('Storico caricamenti',body+'<div class="actions"><button type="button" class="btn ghost" data-act="close">Chiudi</button></div>');
@@ -1884,7 +1885,7 @@ function viewAnalisi(){
   var up='<input type="file" id="file-v" accept=".xlsx,.xls" multiple hidden>';
   if(!S.vOk)return '<div class="empty"><h2>Manca un passaggio su Supabase</h2><p>Per usare l\'analisi vendite serve creare una tabella una volta sola: apri Supabase → SQL Editor, incolla il contenuto del file <b>VENDITE-supabase.sql</b> e premi Run. Poi ricarica questa pagina.</p></div>';
   var L=vCards(),meta=anaMeta();
-  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><button class="btn ghost" data-act="ana-log">'+ic('clock',18)+' Storico caricamenti</button><span class="muted">'+(meta&&meta.da?esc(vCover(meta))+' · ultimo caricamento '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini (anche più file insieme): viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
+  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><button class="btn ghost" data-act="ana-log">'+ic('clock',18)+' Storico caricamenti</button>'+vUnmBtn()+'<span class="muted">'+(meta&&meta.da?esc(vCover(meta))+' · ultimo caricamento '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini (anche più file insieme): viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
   if(!L.length)return head+'<div class="empty"><h2>Ancora nessun dato</h2><p>Carica il file Excel degli ordini (ragione sociale, quantità, prezzo netto). Verranno considerati solo i clienti che hai in rubrica.</p></div>';
   var T=vToday(),cur=0,prv=0,co=0,tc=0,att=0,calo=0;
   L.forEach(function(x){cur+=x.cur.t;prv+=x.prv.t;co+=x.cur.co;tc+=x.cur.tc;if(x.cur.t>0)att++;if(x.d!=null&&x.d<0)calo++;});
@@ -2093,10 +2094,12 @@ async function vCommit(p,asg,aliasAdd,pda,pa){
   var meta=anaMeta(),da=pda,a=pa;
   if(meta&&meta.da&&meta.da<da)da=meta.da;if(meta&&meta.a&&meta.a>a)a=meta.a;
   var nrows=p.rows.filter(function(r){return asg.has(r.nome);}).length;
-  docs.push({id:'_meta',da:da,a:a,per:((meta&&meta.per)||[]).concat([[pda,pa]]),log:((meta&&meta.log)||[]).concat([{q:new Date().toISOString(),f:p.file||'',da:pda,a:pa,n:nrows,c:groups.size}]),caricato:new Date().toISOString()});
+  var unm=p.names.filter(function(n){return !asg.has(n.name);}).sort(function(a,b){return b.t-a.t;}),tn=0,tt=0;
+  p.names.forEach(function(n){tt+=n.t;if(!asg.has(n.name))tn+=n.t;});
+  docs.push({id:'_meta',da:da,a:a,per:((meta&&meta.per)||[]).concat([[pda,pa]]),log:((meta&&meta.log)||[]).concat([{q:new Date().toISOString(),f:p.file||'',da:pda,a:pa,n:nrows,c:groups.size,tt:Math.round(tt),tn:Math.round(tn),nm:unm.slice(0,40).map(function(n){return [n.name,Math.round(n.t)];})}]),caricato:new Date().toISOString()});
   var cs=[];if(aliasAdd)aliasAdd.forEach(function(names,cid){var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;var o=clone(c);o.alias=(o.alias||[]).concat(names.filter(function(n){return (o.alias||[]).indexOf(n)<0;}));cs.push(o);});
   await putMany('vendite',docs);await delMany('vendite',dels);if(cs.length)await putMany('clienti',cs);
-  return {ng:groups.size,nr:nrows,da:pda,a:pa};
+  return {ng:groups.size,nr:nrows,da:pda,a:pa,tt:tt,tn:tn,nu:unm.length};
 }
 async function vApply(){
   var p=VPLAN;if(!p)return;
@@ -2136,18 +2139,44 @@ async function handleVBatch(files){
       var asg=new Map();
       p.names.forEach(function(n){var m=vAutoMatch(n.name);if(m)asg.set(n.name,m.cid);else{var u=unm.get(n.name)||{name:n.name,t:0};u.t+=n.t;unm.set(n.name,u);}});
       var r=await vCommit(p,asg,null,it.per[0],it.per[1]);
-      res.push({f:it.f.name,da:r.da,a:r.a,nr:r.nr,ng:r.ng});
+      res.push({f:it.f.name,da:r.da,a:r.a,nr:r.nr,ng:r.ng,tt:r.tt,tn:r.tn});
     }catch(e){console.error(e);res.push({f:it.f.name,err:'file non leggibile'});}
   }
   var okn=res.filter(function(x){return !x.err;}),ko=res.filter(function(x){return x.err;});
   var um=Array.from(unm.values()).sort(function(a,b){return b.t-a.t;}).slice(0,10);
   var body='<p><b>'+okn.length+' file importati</b>'+(ko.length?', '+ko.length+' non importati':'')+'.</p>'
-    +(okn.length?'<ul class="list vlog">'+okn.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.f)+'</span><span class="s">Dal '+esc(fmtIT(x.da))+' al '+esc(fmtIT(x.a))+' · '+x.nr.toLocaleString('it-IT')+' righe · '+x.ng+' clienti</span></div></li>';}).join('')+'</ul>':'')
+    +(okn.length?'<ul class="list vlog">'+okn.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.f)+'</span><span class="s">Dal '+esc(fmtIT(x.da))+' al '+esc(fmtIT(x.a))+' · '+x.nr.toLocaleString('it-IT')+' righe · '+x.ng+' clienti'+(x.tn>0?' · <b>non abbinato '+eur0(x.tn)+' ('+Math.round(x.tn/Math.max(1,x.tt)*100)+'%)</b>':'')+'</span></div></li>';}).join('')+'</ul>':'')
     +(ko.length?'<h3 class="vh">Non importati</h3><ul class="list vlog">'+ko.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.f)+'</span><span class="s">'+esc(x.err)+'</span></div></li>';}).join('')+'</ul><p class="ghint">Rinomina i file così: <b>2025-01.xlsx</b> (anno-mese) oppure <b>01-01-2025_31-01-2025.xlsx</b>.</p>':'')
     +(um.length?'<h3 class="vh">Nei file ma non in rubrica (ignorati)</h3><p class="ghint">Se uno è un tuo cliente scritto in modo diverso, caricalo una volta da solo: potrai abbinarlo e dalle volte dopo verrà riconosciuto.</p><ul class="list vlog">'+um.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.name)+'</span><span class="s">'+eur0(x.t)+' in totale</span></div></li>';}).join('')+'</ul>':'')
     +'<div class="actions"><button type="button" class="btn primary" data-act="close">Chiudi</button></div>';
   openSheet('Importazione completata',body);
   var sh=$('.sheet');if(sh)sh.classList.add('wide');
+}
+/* --- fatturato non abbinato --- */
+function vUnmAgg(){
+  var m=anaMeta(),L=(m&&m.log)||[],mp=new Map(),tn=0,tt=0;
+  L.forEach(function(e){tn+=e.tn||0;tt+=e.tt||0;(e.nm||[]).forEach(function(x){var o=mp.get(x[0])||{name:x[0],t:0};o.t+=x[1];mp.set(x[0],o);});});
+  var known=new Set();S.clienti.forEach(function(c){[vKey(c.nome)].concat((c.alias||[]).map(vKey)).forEach(function(k){if(k)known.add(k);});});
+  var list=Array.from(mp.values()).filter(function(o){return !known.has(vKey(o.name));}).sort(function(a,b){return b.t-a.t;});
+  return {list:list,tn:tn,tt:tt};
+}
+function vUnmBtn(){var u=vUnmAgg();if(!u.list.length)return '';return '<button class="btn ghost" data-act="ana-unm">'+ic('bell',18)+' Non abbinati ('+u.list.length+')</button>';}
+function vUnm(){
+  var u=vUnmAgg();
+  var body='<p class="ghint">Nomi presenti nei file importati ma non abbinati a nessun cliente in rubrica: il loro fatturato <b>non è nelle statistiche</b>'+(u.tt>0?' ('+eur0(u.tn)+' su '+eur0(u.tt)+' totali caricati)':'')+'. Se uno è un tuo cliente scritto diversamente, sceglilo qui: il nome viene ricordato. Poi <b>ricarica i file dei mesi interessati</b> per includerlo (i periodi vengono sostituiti, nessun doppione). Per i primi 40 nomi più grandi di ogni file.</p><div class="vlist">'
+   +(u.list.length?u.list.slice(0,60).map(function(o,i){return '<div class="vm"><div class="vm-n"><b>'+esc(o.name)+'</b><small>'+eur0(o.t)+' in totale</small></div><select class="vsel usel" data-i="'+i+'" aria-label="Cliente in rubrica">'+vOptions('')+'</select></div>';}).join(''):'<p class="ghint">Niente da abbinare.</p>')
+   +'</div><div class="actions"><button type="button" class="btn ghost" data-act="close">Chiudi</button><button type="button" class="btn primary" data-act="ana-unm-save">Salva abbinamenti</button></div>';
+  openSheet('Fatturato non abbinato',body);var sh=$('.sheet');if(sh)sh.classList.add('wide');
+}
+async function vUnmSave(){
+  var u=vUnmAgg(),add=new Map(),n=0;
+  Array.prototype.slice.call(document.querySelectorAll('.usel')).forEach(function(sel){
+    var o=u.list[+sel.dataset.i];if(!o||!sel.value)return;
+    var l=add.get(sel.value)||[];l.push(o.name);add.set(sel.value,l);n++;
+  });
+  if(!n){toast('Scegli almeno un cliente');return;}
+  var cs=[];add.forEach(function(names,cid){var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;var o=clone(c);o.alias=(o.alias||[]).concat(names.filter(function(x){return (o.alias||[]).indexOf(x)<0;}));cs.push(o);});
+  try{await putMany('clienti',cs);closeSheet();toast(n+' abbinamenti salvati: ora ricarica i file dei mesi interessati');}catch(e){console.error(e);toast('Salvataggio non riuscito.');}
 }
 /* --- cancellare un caricamento --- */
 async function vDelLoad(i){
@@ -2712,6 +2741,8 @@ var H={
     }catch(e){console.error(e);toast('Invio non riuscito: controlla la funzione su Supabase.');}
   },
   'ana-log':function(){vLog();},
+  'ana-unm':function(){vUnm();},
+  'ana-unm-save':function(){vUnmSave();},
   'ana-del':function(el){
     if(!el.classList.contains('armed')){el.classList.add('armed');el.dataset.orig=el.textContent;el.textContent='Conferma';setTimeout(function(){if(el.isConnected){el.classList.remove('armed');el.textContent=el.dataset.orig;}},4000);return;}
     vDelLoad(+el.dataset.i);
