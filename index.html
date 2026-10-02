@@ -626,7 +626,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(
 @media (min-width:900px){.nav button[aria-current="page"]{box-shadow:inset 3px 0 0 var(--brand)}}
 .tgl{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--surface)}
 .tgl:hover{color:var(--ink)}
-/* v01.12-e: finestre bloccate in orizzontale */
+/* v01.12-f: finestre bloccate in orizzontale */
 html,body{max-width:100%;overflow-x:hidden}
 .scrim{overscroll-behavior:contain}
 .sheet{overflow-x:hidden;box-sizing:border-box;min-width:0;max-height:calc(100dvh - 16px);-webkit-overflow-scrolling:touch}
@@ -649,7 +649,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .pe{padding:14px;margin:0;color:var(--muted);font-size:14px}
 .col-a,.col-b{min-width:0}
 .main,main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
-/* v01.12-e: mesi sotto i mini-grafici e righe attivita */
+/* v01.12-f: mesi sotto i mini-grafici e righe attivita */
 .sp-w{width:100%}
 .sp-m{position:relative;height:13px;margin-top:2px}
 .sp-m i{position:absolute;top:0;transform:translateX(-50%);font-style:normal;font-size:9.5px;line-height:13px;color:var(--muted);font-weight:600}
@@ -1026,7 +1026,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.12-e</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.12-f</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function themeDark(){var t=document.documentElement.getAttribute('data-theme');if(t)return t==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);}
@@ -1906,10 +1906,12 @@ function vInP(d,p){
   if(p==='prev')return y===T.Y-1;
   return d<=T.t;
 }
+function vOff(cid){var c=S.clienti.find(function(x){return x.id===cid;});return !!(c&&c.anaOff);}
 function vAll(){
   var m=new Map();
   S.vendite.forEach(function(d){
     if(d.id==='_meta'||!d.clienteId)return;
+    if(vOff(d.clienteId))return;
     var a=m.get(d.clienteId);if(!a){a=[];m.set(d.clienteId,a);}
     (d.righe||[]).forEach(function(r){a.push({k:r[0],d:r[1],c:r[2],q:r[3],t:r[4],co:(r[5]!=null&&r[5]>6*r[4])?null:r[5],cr:r[5],x:r[6]});});
   });
@@ -1982,7 +1984,7 @@ function viewAnalisi(){
   var up='<input type="file" id="file-v" accept=".xlsx,.xls" multiple hidden>';
   if(!S.vOk)return '<div class="empty"><h2>Manca un passaggio su Supabase</h2><p>Per usare l\'analisi vendite serve creare una tabella una volta sola: apri Supabase → SQL Editor, incolla il contenuto del file <b>VENDITE-supabase.sql</b> e premi Run. Poi ricarica questa pagina.</p></div>';
   var L=vCards(),meta=anaMeta();
-  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><button class="btn ghost" data-act="ana-log">'+ic('clock',18)+' Storico caricamenti</button>'+vUnmBtn()+'<span class="muted">'+(meta&&meta.da?esc(vCover(meta))+' · ultimo caricamento '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini (anche più file insieme): viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
+  var head='<div class="ana-up"><button class="btn primary" data-act="ana-up">'+ic('upload',18)+' Carica file ordini</button><button class="btn ghost" data-act="ana-log">'+ic('clock',18)+' Storico caricamenti</button>'+vUnmBtn()+vExclBtn()+'<span class="muted">'+(meta&&meta.da?esc(vCover(meta))+' · ultimo caricamento '+esc(fmtIT((meta.caricato||'').slice(0,10))):'Carica il file Excel degli ordini (anche più file insieme): viene letto, usato per i tuoi clienti e poi dimenticato.')+'</span></div>';
   if(!L.length)return head+'<div class="empty"><h2>Ancora nessun dato</h2><p>Carica il file Excel degli ordini (ragione sociale, quantità, prezzo netto). Verranno considerati solo i clienti che hai in rubrica.</p></div>';
   var T=vToday(),cur=0,prv=0,co=0,tc=0,att=0,calo=0;
   L.forEach(function(x){cur+=x.cur.t;prv+=x.prv.t;co+=x.cur.co;tc+=x.cur.tc;if(x.cur.t>0)att++;if(x.d!=null&&x.d<0)calo++;});
@@ -2060,7 +2062,7 @@ function viewAnaDetail(cid){
     +'<div><div class="sec-h"><h3>Prodotti più venduti</h3></div>'+(pl.length?'<ul class="list">'+pl.slice(0,12).map(function(p){var m=p.tc>0?(p.tc-p.co)/p.tc:null,rr=(p.tc>0&&p.co>0)?(p.tc-p.co)/p.co:null;return '<li class="row pr"><div class="row-main"><span class="t">'+esc(p.x||'')+'</span><span class="s">'+p.q.toLocaleString('it-IT',{maximumFractionDigits:2})+' pz · prezzo medio '+(p.q>0?eur2(p.t/p.q):'—')+(m!=null?' · marg. '+pct0(m)+' · ric. '+pct0(rr):'')+'</span></div><b class="rv">'+eur0(p.t)+'</b></li>';}).join('')+'</ul>':'<div class="list"><div class="kv"><span class="s">Nessun prodotto in questo periodo.</span></div></div>')+'</div></div>';
   h+=oppHtml(cid);
   if(fut>0)h+='<p class="chart-note">Righe con data futura: '+eur0(fut)+' (non inclusi nei totali).</p>';
-  h+='<div class="actions"><button type="button" class="btn ghost" data-act="v-move" data-id="'+esc(cid)+'">Sposta questo fatturato su un altro cliente</button></div>';
+  h+='<div class="actions"><button type="button" class="btn ghost" data-act="v-move" data-id="'+esc(cid)+'">Sposta questo fatturato su un altro cliente</button><button type="button" class="btn ghost" data-act="v-off" data-id="'+esc(cid)+'">Escludi dall\'analisi</button></div>';
   return h+'<p class="chart-note">Il prezzo medio è il totale di riga diviso per la quantità ordinata.</p>';
 }
 /* --- caricamento del file --- */
@@ -2141,6 +2143,26 @@ function vAutoMatch(name){
   if(ex)return {cid:ex,tipo:'esatto'};
   if(sim.size===1)return {cid:Array.from(sim)[0],tipo:'simile'};
   return null;
+}
+function vExclList(){return S.clienti.filter(function(c){return c.anaOff;}).sort(cmpNome);}
+function vExclBtn(){var n=vExclList().length;return n?'<button class="btn ghost" data-act="ana-excl">'+ic('clock',18)+' Esclusi ('+n+')</button>':'';}
+function openVExcl(){
+  var L=vExclList();
+  var body='<p class="ghint">Questi clienti non compaiono nelle statistiche, ma il loro fatturato è ancora salvato: se li riattivi torna tutto com\'era.</p>'
+    +(L.length?'<ul class="list">'+L.map(function(c){return '<li class="row"><div class="row-main"><span class="t">'+esc(c.nome)+'</span></div><button type="button" class="btn ghost sm" data-act="v-on" data-id="'+esc(c.id)+'">Riattiva</button></li>';}).join('')+'</ul>':'<p class="ghint">Nessun cliente escluso.</p>')
+    +'<div class="actions"><button type="button" class="btn ghost" data-act="close">Chiudi</button></div>';
+  openSheet('Clienti esclusi dall\'analisi',body);
+}
+function openVOff(cid){
+  var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;
+  var body='<p class="ghint"><b>'+esc(c.nome)+'</b> non verrà più conteggiato nelle statistiche, nei clienti a rischio e nei totali. Il fatturato resta salvato e anche i prossimi file continueranno ad abbinarsi a questo cliente (senza mostrarlo): puoi riattivarlo quando vuoi da "Esclusi".</p>'
+    +'<div class="actions"><button type="button" class="btn ghost" data-act="close">Annulla</button><button type="button" class="btn danger" data-act="v-off-ok" data-id="'+esc(cid)+'">Escludi dall\'analisi</button></div>';
+  openSheet('Escludere dall\'analisi?',body);
+}
+async function vSetOff(cid,off){
+  var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;
+  var o=clone(c);if(off)o.anaOff=true;else delete o.anaOff;
+  await put('clienti',o);
 }
 function openVMove(cid){
   var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;
@@ -2960,6 +2982,10 @@ var H={
   alertgg:function(el){S.ui.alertGg=+el.dataset.v;try{localStorage.setItem('crm.alertGg',String(S.ui.alertGg));}catch(e){}render();if($('.sheet[aria-label="Clienti da rivisitare"]'))alertSheet();},
   'alert-all':function(){alertSheet();},
   'v-move':function(el){openVMove(el.dataset.id);},
+  'v-off':function(el){openVOff(el.dataset.id);},
+  'v-off-ok':function(el){vSetOff(el.dataset.id,true).then(function(){closeSheet();S.ui.anaId=null;toast('Cliente escluso dall\'analisi');render();}).catch(function(){toast('Operazione non riuscita');});},
+  'v-on':function(el){vSetOff(el.dataset.id,false).then(function(){toast('Cliente riattivato');closeSheet();render();if(vExclList().length)openVExcl();}).catch(function(){toast('Operazione non riuscita');});},
+  'ana-excl':function(){openVExcl();},
   'ana-open':function(el){closeSheet();S.ui.tab='analisi';S.ui.clienteId=null;S.ui.anaId=el.dataset.id;S.ui.anaP='ytd';window.scrollTo(0,0);render();},
   'ana-sort':function(el){S.ui.anaS=el.dataset.v;render();},
   'ana-per':function(el){S.ui.anaP=el.dataset.v;render();},
