@@ -626,7 +626,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(
 @media (min-width:900px){.nav button[aria-current="page"]{box-shadow:inset 3px 0 0 var(--brand)}}
 .tgl{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--surface)}
 .tgl:hover{color:var(--ink)}
-/* v01.12-d: finestre bloccate in orizzontale */
+/* v01.12-e: finestre bloccate in orizzontale */
 html,body{max-width:100%;overflow-x:hidden}
 .scrim{overscroll-behavior:contain}
 .sheet{overflow-x:hidden;box-sizing:border-box;min-width:0;max-height:calc(100dvh - 16px);-webkit-overflow-scrolling:touch}
@@ -649,7 +649,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .pe{padding:14px;margin:0;color:var(--muted);font-size:14px}
 .col-a,.col-b{min-width:0}
 .main,main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
-/* v01.12-d: mesi sotto i mini-grafici e righe attivita */
+/* v01.12-e: mesi sotto i mini-grafici e righe attivita */
 .sp-w{width:100%}
 .sp-m{position:relative;height:13px;margin-top:2px}
 .sp-m i{position:absolute;top:0;transform:translateX(-50%);font-style:normal;font-size:9.5px;line-height:13px;color:var(--muted);font-weight:600}
@@ -1026,7 +1026,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.12-d</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.12-e</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function themeDark(){var t=document.documentElement.getAttribute('data-theme');if(t)return t==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);}
@@ -2060,6 +2060,7 @@ function viewAnaDetail(cid){
     +'<div><div class="sec-h"><h3>Prodotti più venduti</h3></div>'+(pl.length?'<ul class="list">'+pl.slice(0,12).map(function(p){var m=p.tc>0?(p.tc-p.co)/p.tc:null,rr=(p.tc>0&&p.co>0)?(p.tc-p.co)/p.co:null;return '<li class="row pr"><div class="row-main"><span class="t">'+esc(p.x||'')+'</span><span class="s">'+p.q.toLocaleString('it-IT',{maximumFractionDigits:2})+' pz · prezzo medio '+(p.q>0?eur2(p.t/p.q):'—')+(m!=null?' · marg. '+pct0(m)+' · ric. '+pct0(rr):'')+'</span></div><b class="rv">'+eur0(p.t)+'</b></li>';}).join('')+'</ul>':'<div class="list"><div class="kv"><span class="s">Nessun prodotto in questo periodo.</span></div></div>')+'</div></div>';
   h+=oppHtml(cid);
   if(fut>0)h+='<p class="chart-note">Righe con data futura: '+eur0(fut)+' (non inclusi nei totali).</p>';
+  h+='<div class="actions"><button type="button" class="btn ghost" data-act="v-move" data-id="'+esc(cid)+'">Sposta questo fatturato su un altro cliente</button></div>';
   return h+'<p class="chart-note">Il prezzo medio è il totale di riga diviso per la quantità ordinata.</p>';
 }
 /* --- caricamento del file --- */
@@ -2126,18 +2127,54 @@ function vParse(wb){
 }
 function vAutoMatch(name){
   var k=vKey(name);if(!k)return null;
-  var ex=null,sim=new Set();
+  var ex=null,exA=null,sim=new Set();
   S.clienti.forEach(function(c){
     var keys=[vKey(c.nome)].concat((c.alias||[]).map(vKey));
+    var ak=(c.alias||[]).map(vKey);
     keys.forEach(function(ck){
       if(!ck)return;
-      if(ck===k)ex=c.id;
+      if(ck===k){if(ak.indexOf(ck)>=0)exA=c.id;else ex=c.id;}
       else if(ck.length>=4&&k.length>=4&&(k.indexOf(ck)===0||ck.indexOf(k)===0))sim.add(c.id);
     });
   });
+  if(exA)return {cid:exA,tipo:'esatto'};
   if(ex)return {cid:ex,tipo:'esatto'};
   if(sim.size===1)return {cid:Array.from(sim)[0],tipo:'simile'};
   return null;
+}
+function openVMove(cid){
+  var c=S.clienti.find(function(x){return x.id===cid;});if(!c)return;
+  var tot=0,n=0;S.vendite.forEach(function(d){if(d.clienteId===cid)(d.righe||[]).forEach(function(r){tot+=r[4]||0;n++;});});
+  var body='<form id="frm" novalidate><p class="ghint">Il fatturato di <b>'+esc(c.nome)+'</b> ('+eur0(tot)+', '+n+' righe, tutti gli anni) verrà attribuito al cliente che scegli. Il cliente '+esc(c.nome)+' resta in rubrica, senza fatturato.</p>'
+    +pickerHtml('',false).replace('id="pk-q"','id="pk-q" placeholder="A quale cliente va attribuito?"')
+    +'<label class="chk"><input type="checkbox" id="mv-al" checked><span>Nei prossimi file assegna "'+esc(c.nome)+'" a questo cliente</span></label>'
+    +'<div class="actions"><button type="button" class="btn ghost" data-act="close">Annulla</button><button type="submit" class="btn primary">Sposta</button></div></form>';
+  openSheet('Sposta fatturato',body,function(sheet){
+    wirePicker(sheet,function(){});
+    $('#frm',sheet).addEventListener('submit',async function(e){
+      e.preventDefault();
+      var to=$('#pk-id',sheet).value;
+      if(!to||to===cid){var er=$('#pk-err',sheet);if(er){er.textContent=to===cid?'Scegli un cliente diverso':'Scegli il cliente di destinazione';er.hidden=false;}return;}
+      var al=$('#mv-al',sheet).checked;
+      try{await vMove(cid,to,al);closeSheet();toast('Fatturato spostato');S.ui.anaId=to;render();}
+      catch(x){console.error(x);toast('Non sono riuscito a spostare il fatturato');}
+    });
+  });
+}
+async function vMove(from,to,alias){
+  var src=S.vendite.filter(function(d){return d.clienteId===from;});if(!src.length)return;
+  var map=new Map();
+  S.vendite.filter(function(d){return d.clienteId===to;}).forEach(function(d){(d.righe||[]).forEach(function(r){map.set(r[0],r);});});
+  src.forEach(function(d){(d.righe||[]).forEach(function(r){if(!map.has(r[0]))map.set(r[0],r);else{var o=map.get(r[0]);map.set(r[0]+'#'+from,[r[0]+'#'+from].concat(r.slice(1)));}});});
+  var by={};map.forEach(function(r){var y=r[1].slice(0,4);(by[y]=by[y]||[]).push(r);});
+  var docs=Object.keys(by).map(function(y){return {id:to+'|'+y,clienteId:to,anno:+y,righe:by[y]};});
+  var keep=new Set(docs.map(function(d){return d.id;}));
+  var dels=src.map(function(d){return d.id;}).filter(function(id){return !keep.has(id);});
+  await putMany('vendite',docs);if(dels.length)await delMany('vendite',dels);
+  if(alias){
+    var a=S.clienti.find(function(x){return x.id===from;}),b=S.clienti.find(function(x){return x.id===to;});
+    if(a&&b){var o=clone(b);o.alias=o.alias||[];[a.nome].concat(a.alias||[]).forEach(function(nm){if(nm&&o.alias.indexOf(nm)<0&&nm!==o.nome)o.alias.push(nm);});await put('clienti',o);}
+  }
 }
 async function handleVFile(file){
   if(!file)return;
@@ -2922,6 +2959,7 @@ var H={
   retry:function(){location.reload();},
   alertgg:function(el){S.ui.alertGg=+el.dataset.v;try{localStorage.setItem('crm.alertGg',String(S.ui.alertGg));}catch(e){}render();if($('.sheet[aria-label="Clienti da rivisitare"]'))alertSheet();},
   'alert-all':function(){alertSheet();},
+  'v-move':function(el){openVMove(el.dataset.id);},
   'ana-open':function(el){closeSheet();S.ui.tab='analisi';S.ui.clienteId=null;S.ui.anaId=el.dataset.id;S.ui.anaP='ytd';window.scrollTo(0,0);render();},
   'ana-sort':function(el){S.ui.anaS=el.dataset.v;render();},
   'ana-per':function(el){S.ui.anaP=el.dataset.v;render();},
