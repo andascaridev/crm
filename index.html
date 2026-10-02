@@ -626,15 +626,29 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(
 @media (min-width:900px){.nav button[aria-current="page"]{box-shadow:inset 3px 0 0 var(--brand)}}
 .tgl{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--surface)}
 .tgl:hover{color:var(--ink)}
-/* v01.12-b: finestre bloccate in orizzontale */
+/* v01.12-c: finestre bloccate in orizzontale */
 html,body{max-width:100%;overflow-x:hidden}
-.scrim{overflow:hidden;touch-action:pan-y;overscroll-behavior:contain}
-.sheet{overflow-x:hidden;box-sizing:border-box;touch-action:pan-y;min-width:0}
+.scrim{overscroll-behavior:contain}
+.sheet{overflow-x:hidden;box-sizing:border-box;min-width:0;max-height:calc(100dvh - 16px);-webkit-overflow-scrolling:touch}
 .sheet *,.sheet *::before,.sheet *::after{box-sizing:border-box}
 .sheet .field,.sheet .row2,.sheet form{min-width:0;max-width:100%}
 .sheet input,.sheet select,.sheet textarea{max-width:100%;min-width:0}
 .sheet input[type=date],.sheet input[type=time],.sheet input[type=datetime-local]{-webkit-appearance:none;appearance:none;display:block;width:100%;max-width:100%;min-width:0}
 .sheet textarea{font-size:16px}.sheet input,.sheet select{font-size:16px}
+/* pannelli della home */
+.panel{--pc:var(--new);background:var(--surface);border:2px solid color-mix(in srgb,var(--pc) 45%,var(--line));border-radius:18px;overflow:hidden;margin:0 0 18px}
+.panel.p-risk{--pc:var(--danger)}.panel.p-act{--pc:var(--ok)}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;background:color-mix(in srgb,var(--pc) 14%,var(--surface));border-bottom:2px solid color-mix(in srgb,var(--pc) 30%,var(--line))}
+.pt{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--pc)}
+.pt::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--pc)}
+.pt .cnt{background:var(--pc);color:var(--surface);border-radius:999px;padding:1px 9px;font-size:12.5px;letter-spacing:0}
+.ph .lnk{font:inherit;font-size:13.5px;font-weight:700;color:var(--pc);background:none;border:0;padding:6px 0;cursor:pointer}
+.panel .grp{margin:0}.panel .grp-h{padding:10px 14px 2px;margin:0}
+.panel .list{border:0;border-radius:0;box-shadow:none;background:transparent;margin:0}
+.panel .list>*:first-child{border-top:0}
+.pe{padding:14px;margin:0;color:var(--muted);font-size:14px}
+.col-a,.col-b{min-width:0}
+.main,main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -999,7 +1013,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.12-b</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.12-c</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function themeDark(){var t=document.documentElement.getAttribute('data-theme');if(t)return t==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);}
@@ -1041,14 +1055,15 @@ function viewOggi(){
   var h=exampleBanner();
   h+='<div class="stats">'+STATO_ORDER.map(function(k){return '<button class="stat '+k+'" data-act="goto-stato" data-v="'+k+'"><b>'+cnt[k]+'</b><span>'+STATI[k].plural+'</span></button>';}).join('')+'</div>';
   function grp(title,items,cls){return items.length?'<section class="grp"><h3 class="grp-h '+(cls||'')+'">'+title+' <span class="cnt">'+items.length+'</span></h3><ul class="list">'+items.map(function(x){return todoRow(x,I,true);}).join('')+'</ul></section>':'';}
-  var g=grp('Scaduti',over,'over')+grp('Oggi',today,'today')+grp('Prossimi 7 giorni',soon);
-  h+='<div class="cols"><div class="col-a">'+(g||'<section class="grp"><h3 class="grp-h">Da fare</h3><ul class="list"><li class="row"><span class="s">Niente in scadenza nei prossimi 7 giorni.</span></li></ul></section>')+'</div><div class="col-b">';
+var nAll=over.length+today.length+soon.length,LIM=isDesk()?99:4,lim=LIM;function cut(arr){var r=arr.slice(0,Math.max(lim,0));lim-=r.length;return r;}
+  var g=grp('Scaduti',cut(over),'over')+grp('Oggi',cut(today),'today')+grp('Prossimi 7 giorni',cut(soon));
+  h+='<div class="cols"><div class="col-a">'+panel('p-todo','Da fare',nAll,nAll>LIM?'<button class="lnk" data-act="tab" data-v="todo">Vedi tutti</button>':'',g||'<p class="pe">Niente in scadenza nei prossimi 7 giorni.</p>')+'</div><div class="col-b">';
   var stl=staleData(statData());
   if(stl.length)h+='<button class="alertbar" data-act="goto-alert">'+ic('bell',18)+'<span><b>'+stl.length+'</b> '+(stl.length===1?'cliente non visitato':'clienti non visitati')+' da oltre '+alertGg()+' giorni</span><span class="chev">'+ic('chevron',18)+'</span></button>';
   h+=cadBar();
   h+=riskCard();
-  var acts=S.attivita.filter(function(a){return I.cm.has(a.clienteId);}).sort(function(a,b){return b.data.localeCompare(a.data);}).slice(0,6);
-  if(acts.length)h+='<section class="grp"><h3 class="grp-h">Ultime attività</h3><ul class="list">'+acts.map(function(a){return actRow(a,I,true);}).join('')+'</ul></section>';
+  var acts=S.attivita.filter(function(a){return I.cm.has(a.clienteId);}).sort(function(a,b){return b.data.localeCompare(a.data);}).slice(0,isDesk()?6:5);
+  if(acts.length)h+=panel('p-act','Ultime attività',null,'','<ul class="list">'+acts.map(function(a){return actRow(a,I,true);}).join('')+'</ul>');
   return h+'</div></div>';
 }
 function filtered(){
@@ -2306,9 +2321,11 @@ function riskRow(x){
   var tag=x.kind==='fermo'?'<span class="rk fermo">Fermo</span>':'<span class="rk calo">In calo</span>';
   return '<li class="row rrow"><button class="row-main" data-act="prep" data-id="'+esc(x.c.id)+'"><span class="t">'+esc(x.c.nome)+'</span><span class="s">'+esc(x.msg)+'</span><span class="s">'+(x.kind==='fermo'?'Ultimi 12 mesi: '+eur0(x.tot):'Perso finora: '+eur0(x.lost))+(x.lv?' · ultima visita '+fmtDay(x.lv):' · mai visitato')+'</span></button>'+tag+'<span class="chev">'+ic('chevron',18)+'</span></li>';
 }
+function panel(cls,title,count,link,body){return '<section class="panel '+cls+'"><div class="ph"><span class="pt">'+esc(title)+(count!=null?' <span class="cnt">'+count+'</span>':'')+'</span>'+(link||'')+'</div>'+body+'</section>';}
 function riskCard(){
   var L=vRisk();if(!L.length)return '';
-  return '<section class="grp risk"><h3 class="grp-h">Clienti a rischio <span class="cnt">'+L.length+'</span></h3><ul class="list">'+L.slice(0,4).map(riskRow).join('')+'</ul>'+(L.length>4?'<button class="btn ghost sm full" data-act="risk-all">Vedi tutti ('+L.length+')</button>':'')+'</section>';
+  var n=isDesk()?4:2;
+  return panel('p-risk','Clienti a rischio',L.length,L.length>n?'<button class="lnk" data-act="risk-all">Vedi tutti</button>':'','<ul class="list">'+L.slice(0,n).map(riskRow).join('')+'</ul>');
 }
 function riskSheet(){
   var L=vRisk();
