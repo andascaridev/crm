@@ -626,7 +626,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(
 @media (min-width:900px){.nav button[aria-current="page"]{box-shadow:inset 3px 0 0 var(--brand)}}
 .tgl{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--surface)}
 .tgl:hover{color:var(--ink)}
-/* v01.12-h: finestre bloccate in orizzontale */
+/* v01.13-a: finestre bloccate in orizzontale */
 html,body{max-width:100%;overflow-x:hidden}
 .scrim{overscroll-behavior:contain}
 .sheet{overflow-x:hidden;box-sizing:border-box;min-width:0;max-height:calc(100dvh - 16px);-webkit-overflow-scrolling:touch}
@@ -649,7 +649,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .pe{padding:14px;margin:0;color:var(--muted);font-size:14px}
 .col-a,.col-b{min-width:0}
 .main,main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
-/* v01.12-h: mesi sotto i mini-grafici e righe attivita */
+/* v01.13-a: mesi sotto i mini-grafici e righe attivita */
 .sp-w{width:100%}
 .sp-m{position:relative;height:13px;margin-top:2px}
 .sp-m i{position:absolute;top:0;transform:translateX(-50%);font-style:normal;font-size:9.5px;line-height:13px;color:var(--muted);font-weight:600}
@@ -693,6 +693,13 @@ html,body{max-width:100%;overflow-x:hidden}
   .r-m{font-size:9.5px}.rpt .r-hd{flex-direction:row!important}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+/* scelta modalità importazione */
+.vmode{display:grid;gap:8px;margin:0 0 14px}
+.vmode>b{font-size:14px}
+.vmo{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer}
+.vmo input{margin-top:3px;flex:none;width:18px;height:18px}
+.vmo span{display:grid;gap:2px;min-width:0}.vmo small{color:var(--muted);font-size:12.5px;line-height:1.35}
+.vmo:has(input:checked){border-color:var(--new);background:color-mix(in srgb,var(--new) 8%,var(--surface))}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1059,7 +1066,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.12-h</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.13-a</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function themeDark(){var t=document.documentElement.getAttribute('data-theme');if(t)return t==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);}
@@ -2243,20 +2250,33 @@ async function handleVFile(file){
     VPLAN=p;vPreview();
   }catch(e){console.error(e);toast('Non riesco a leggere questo file.');}
 }
-function vOptions(sel){
+function vOptions(sel,withNew){
   var list=S.clienti.slice().sort(cmpNome);
-  return '<option value="">— ignora —</option>'+list.map(function(c){return '<option value="'+esc(c.id)+'"'+(c.id===sel?' selected':'')+'>'+esc(c.nome)+'</option>';}).join('');
+  return '<option value="">— ignora —</option>'+(withNew?'<option value="__new__"'+(sel==='__new__'?' selected':'')+'>➕ Nuovo cliente in rubrica</option>':'')+list.map(function(c){return '<option value="'+esc(c.id)+'"'+(c.id===sel?' selected':'')+'>'+esc(c.nome)+'</option>';}).join('');
+}
+function vNewClient(name){return {id:uid('c_'),nome:String(name).trim(),stato:'cliente',referenti:[],creato:new Date().toISOString(),daImport:true};}
+function vModeHtml(mode){
+  return '<div class="vmode" role="radiogroup" aria-label="Quali clienti gestire"><b>Quali clienti vuoi analizzare?</b>'
+    +'<label class="vmo"><input type="radio" name="vmode" value="rubrica"'+(mode==='rubrica'?' checked':'')+'><span><b>Solo i clienti che ho in rubrica</b><small>Gli altri nomi del file vengono ignorati.</small></span></label>'
+    +'<label class="vmo"><input type="radio" name="vmode" value="tutto"'+(mode==='tutto'?' checked':'')+'><span><b>Tutta la clientela del file</b><small>I clienti nuovi vengono aggiunti alla rubrica con la sola ragione sociale (la scheda resta da completare). Quelli già presenti vengono solo aggiornati.</small></span></label></div>';
+}
+function vSnap(){
+  var p=VPLAN;if(!p)return;
+  Array.prototype.slice.call(document.querySelectorAll('.vsel:not(.usel)')).forEach(function(sel){var n=p.names[+sel.dataset.i];if(n){if(sel.value!==sel.dataset.def)n.sel=sel.value;else delete n.sel;}});
+  var a=$('#vp-da'),b=$('#vp-a');if(a&&b){p.pda=a.value;p.pa=b.value;}
 }
 function vPreview(){
-  var p=VPLAN,ok=p.names.filter(function(n){return n.cid;}).sort(function(a,b){return b.t-a.t;}),no=p.names.filter(function(n){return !n.cid;}).sort(function(a,b){return b.t-a.t;});
+  var p=VPLAN;if(!p.mode)p.mode=S.clienti.length?'rubrica':'tutto';var ok=p.names.filter(function(n){return n.cid;}).sort(function(a,b){return b.t-a.t;}),no=p.names.filter(function(n){return !n.cid;}).sort(function(a,b){return b.t-a.t;});
   var nrows=ok.reduce(function(s,n){return s+n.n;},0);
-  function line(n,i){return '<div class="vm"><div class="vm-n"><b>'+esc(n.name)+'</b><small>'+n.n+' righe · '+eur0(n.t)+(n.tipo==='simile'?' · nome simile, controlla':'')+'</small></div><select class="vsel" data-i="'+p.names.indexOf(n)+'" aria-label="Cliente in rubrica">'+vOptions(n.cid)+'</select></div>';}
+  function line(n,i,isNo){var df=n.cid||(isNo&&p.mode==='tutto'?'__new__':''),sv=n.sel!==undefined?n.sel:df;return '<div class="vm"><div class="vm-n"><b>'+esc(n.name)+'</b><small>'+n.n+' righe · '+eur0(n.t)+(n.tipo==='simile'?' · nome simile, controlla':'')+'</small></div><select class="vsel" data-def="'+df+'" data-i="'+p.names.indexOf(n)+'" aria-label="Cliente in rubrica">'+vOptions(sv,isNo)+'</select></div>';}
   var mt=anaMeta(),dflA=todayStr(),dflD=(mt&&mt.a&&mt.a<dflA)?addDays(mt.a,1):dflA.slice(0,8)+'01';
   if(p.pn){dflD=p.pn[0];dflA=p.pn[1];}
+  if(p.pda){dflD=p.pda;dflA=p.pa;}
   var body='<p class="ghint">Righe lette: <b>'+p.rows.length.toLocaleString('it-IT')+'</b>. Escluse spese e anticipi: '+p.excl+'. Righe senza quantità o prezzo: '+p.skip+'.</p>'
     +'<div class="vper"><b>Periodo degli ordini in questo file</b><div class="vper-r"><label>Dal<input type="date" id="vp-da" value="'+dflD+'"></label><label>Al<input type="date" id="vp-a" value="'+dflA+'"></label></div><p class="ghint">'+(p.pn?'Periodo preso dal nome del file: controlla che sia giusto. ':'')+'Indica da quando a quando gli ordini sono stati <b>inseriti</b> (non consegnati). Meglio un mese intero alla volta. I dati già presenti in questo periodo vengono sostituiti, quelli degli altri periodi restano.</p></div>'
+    +vModeHtml(p.mode)
     +'<h3 class="vh">Clienti trovati in rubrica ('+ok.length+')</h3><div class="vlist">'+(ok.map(line).join('')||'<p class="ghint">Nessun cliente abbinato automaticamente.</p>')+'</div>'
-    +'<h3 class="vh">Nel file ma non in rubrica ('+no.length+')</h3><p class="ghint">Vengono ignorati. Se uno è un tuo cliente scritto in modo diverso, scegli qui sotto chi è: la prossima volta lo riconosce da solo.</p><div class="vlist">'+no.slice(0,25).map(line).join('')+(no.length>25?'<p class="ghint">…e altri '+(no.length-25)+' meno rilevanti, ignorati.</p>':'')+'</div>'
+    +'<h3 class="vh">'+(p.mode==='tutto'?'Nuovi clienti da aggiungere':'Nel file ma non in rubrica')+' ('+no.length+')</h3><p class="ghint">'+(p.mode==='tutto'?'Verranno aggiunti alla rubrica con la sola ragione sociale. Se uno è già un tuo cliente scritto in modo diverso, scegli chi è (o lascia "ignora" per non importarlo): la prossima volta lo riconosce da solo.':'Vengono ignorati. Se uno è un tuo cliente scritto in modo diverso, scegli qui sotto chi è: la prossima volta lo riconosce da solo. Puoi anche aggiungerlo alla rubrica come nuovo cliente.')+'</p><div class="vlist">'+no.slice(0,25).map(function(n){return line(n,0,true);}).join('')+(no.length>25?'<p class="ghint">…e altri '+(no.length-25)+' meno rilevanti, '+(p.mode==='tutto'?'aggiunti anch\'essi come nuovi clienti':'ignorati')+'.</p>':'')+'</div>'
     +'<p class="ghint">Il file non viene salvato: restano solo i dati dei clienti che confermi.</p>'
     +'<div class="actions"><button type="button" class="btn ghost" data-act="close">Annulla</button><button type="button" class="btn primary" data-act="ana-go">Importa</button></div>';
   openSheet('Controlla l\'abbinamento',body);
@@ -2294,27 +2314,40 @@ async function vCommit(p,asg,aliasAdd,pda,pa){
 async function vApply(){
   var p=VPLAN;if(!p)return;
   var btn=$('[data-act="ana-go"]');if(btn){btn.disabled=true;btn.textContent='Importo…';}
-  var asg=new Map(),aliasAdd=new Map();
+  var asg=new Map(),aliasAdd=new Map(),newBy=new Map(),shown=new Set();
+  function newFor(name){var k=vKey(name),c=newBy.get(k);if(!c){c=vNewClient(name);newBy.set(k,c);}return c.id;}
   Array.prototype.slice.call(document.querySelectorAll('.vsel')).forEach(function(s){
-    var n=p.names[+s.dataset.i];if(!n||!s.value)return;
+    var n=p.names[+s.dataset.i];if(!n)return;
+    shown.add(n.name);
+    if(s.value==='__new__'){asg.set(n.name,newFor(n.name));return;}
+    if(!s.value)return;
     asg.set(n.name,s.value);
     var c=S.clienti.find(function(x){return x.id===s.value;});
     if(c){var ks=[vKey(c.nome)].concat((c.alias||[]).map(vKey));if(ks.indexOf(vKey(n.name))<0){var l=aliasAdd.get(c.id)||[];l.push(n.name);aliasAdd.set(c.id,l);}}
   });
+  if(p.mode==='tutto')p.names.forEach(function(n){if(!shown.has(n.name)&&!asg.has(n.name)&&!n.cid)asg.set(n.name,newFor(n.name));});
   var pda=($('#vp-da')||{}).value,pa=($('#vp-a')||{}).value;
   if(!pda||!pa||pda>pa){toast('Indica il periodo: dal … al … (la prima data deve venire prima della seconda).');if(btn){btn.disabled=false;btn.textContent='Importa';}return;}
   try{
+    var nn=Array.from(newBy.values()).filter(function(c){return Array.from(asg.values()).indexOf(c.id)>=0;});
+    if(nn.length)await putMany('clienti',nn);
     var r=await vCommit(p,asg,aliasAdd,pda,pa);
-    closeSheet();toast(r.ng+' clienti aggiornati, '+r.nr.toLocaleString('it-IT')+' righe');
+    closeSheet();toast(r.ng+' clienti aggiornati, '+r.nr.toLocaleString('it-IT')+' righe'+(nn.length?' · '+nn.length+' nuovi in rubrica':''));
   }catch(e){console.error(e);toast('Importazione non riuscita. Riprova.');}
   VPLAN=null;
 }
 /* --- caricamento di più file insieme --- */
-async function handleVBatch(files){
+function handleVBatch(files){
+  if(!window.XLSX){toast('Lettura Excel non disponibile: controlla la connessione.');return;}
+  var mode=S.clienti.length?'rubrica':'tutto';
+  openSheet('Importazione di '+files.length+' file',vModeHtml(mode)+'<p class="ghint">Dove un cliente è già in rubrica, i suoi dati vengono solo aggiornati.</p><div class="actions"><button type="button" class="btn ghost" data-act="close">Annulla</button><button type="button" class="btn primary" id="vb-go">Importa</button></div>');
+  var b=$('#vb-go');if(b)b.addEventListener('click',function(){var r=document.querySelector('input[name="vmode"]:checked');runVBatch(files,r?r.value:'rubrica');});
+}
+async function runVBatch(files,mode){
   if(!window.XLSX){toast('Lettura Excel non disponibile: controlla la connessione.');return;}
   var items=files.map(function(f){return {f:f,per:vPerName(f.name)};});
   var good=items.filter(function(x){return x.per;}).sort(function(a,b){return a.per[0]<b.per[0]?-1:1;});
-  var res=[],unm=new Map(),td0=todayStr();
+  var res=[],unm=new Map(),td0=todayStr(),newN=0,newList=[];
   items.filter(function(x){return !x.per;}).forEach(function(x){res.push({f:x.f.name,err:'non riconosco il periodo dal nome'});});
   openSheet('Importazione in corso',"<p class=\"ghint\" id=\"vb-st\">Preparo "+good.length+" file…</p><div class=\"vbar\"><i id=\"vb-b\" style=\"width:0%\"></i></div>");
   for(var i=0;i<good.length;i++){
@@ -2327,14 +2360,15 @@ async function handleVBatch(files){
       if(p.err){res.push({f:it.f.name,err:p.err});continue;}
       p.file=it.f.name;
       var asg=new Map();
-      p.names.forEach(function(n){var m=vAutoMatch(n.name);if(m)asg.set(n.name,m.cid);else{var u=unm.get(n.name)||{name:n.name,t:0};u.t+=n.t;unm.set(n.name,u);}});
+      p.names.forEach(function(n){var m=vAutoMatch(n.name);if(m)asg.set(n.name,m.cid);else if(mode==='tutto'){var nc=vNewClient(n.name);newN++;asg.set(n.name,nc.id);newList.push(nc);}else{var u=unm.get(n.name)||{name:n.name,t:0};u.t+=n.t;unm.set(n.name,u);}});
+      if(newList.length){await putMany('clienti',newList);newList=[];}
       var r=await vCommit(p,asg,null,it.per[0],it.per[1]);
       res.push({f:it.f.name,da:r.da,a:r.a,nr:r.nr,ng:r.ng,tt:r.tt,tn:r.tn});
     }catch(e){console.error(e);res.push({f:it.f.name,err:'file non leggibile'});}
   }
   var okn=res.filter(function(x){return !x.err;}),ko=res.filter(function(x){return x.err;});
   var um=Array.from(unm.values()).sort(function(a,b){return b.t-a.t;}).slice(0,10);
-  var body='<p><b>'+okn.length+' file importati</b>'+(ko.length?', '+ko.length+' non importati':'')+'.</p>'
+  var body='<p><b>'+okn.length+' file importati</b>'+(ko.length?', '+ko.length+' non importati':'')+'.'+(newN?' <b>'+newN+' nuovi clienti</b> aggiunti alla rubrica (da completare).':'')+'</p>'
     +(okn.length?'<ul class="list vlog">'+okn.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.f)+'</span><span class="s">Dal '+esc(fmtIT(x.da))+' al '+esc(fmtIT(x.a))+' · '+x.nr.toLocaleString('it-IT')+' righe · '+x.ng+' clienti'+(x.tn>0?' · <b>non abbinato '+eur0(x.tn)+' ('+Math.round(x.tn/Math.max(1,x.tt)*100)+'%)</b>':'')+'</span></div></li>';}).join('')+'</ul>':'')
     +(ko.length?'<h3 class="vh">Non importati</h3><ul class="list vlog">'+ko.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.f)+'</span><span class="s">'+esc(x.err)+'</span></div></li>';}).join('')+'</ul><p class="ghint">Rinomina i file così: <b>2025-01.xlsx</b> (anno-mese) oppure <b>01-01-2025_31-01-2025.xlsx</b>.</p>':'')
     +(um.length?'<h3 class="vh">Nei file ma non in rubrica (ignorati)</h3><p class="ghint">Se uno è un tuo cliente scritto in modo diverso, caricalo una volta da solo: potrai abbinarlo e dalle volte dopo verrà riconosciuto.</p><ul class="list vlog">'+um.map(function(x){return '<li class="row"><div class="row-main"><span class="t">'+esc(x.name)+'</span><span class="s">'+eur0(x.t)+' in totale</span></div></li>';}).join('')+'</ul>':'')
@@ -3175,6 +3209,7 @@ var H={
   'ana-per':function(el){S.ui.anaP=el.dataset.v;render();},
   'ana-up':function(){var f=$('#file-v');f.value='';f.click();},
   'ana-go':function(){vApply();},
+  'v-mode':function(){},
   'goto-cad':function(){S.ui.tab='clienti';S.ui.clienteId=null;S.ui.vista='cadenze';window.scrollTo(0,0);render();},
   'cad-add':function(){openCadenzaForm();},
   'cad-edit':function(el){openCadenzaForm(el.dataset.id);},
@@ -3257,6 +3292,7 @@ document.addEventListener('input',function(e){
   else if(t.id==='g-sosta'){var g=giroSt();g.sosta=Math.max(0,Math.min(240,+t.value||0));giroSave();var rs=$('#g-res');if(rs&&g.res){rs.innerHTML=giroResHtml();attachGiro();}}
 });
 document.addEventListener('change',function(e){
+  if(e.target&&e.target.name==='vmode'&&VPLAN){vSnap();VPLAN.mode=e.target.value;vPreview();return;}
   if(e.target&&e.target.id==='g-rit'){var g=giroSt();g.ritorno=e.target.checked;g.res=null;giroSave();var rs=$('#g-res');if(rs)rs.innerHTML=giroResHtml();}
 });
 document.addEventListener('submit',function(e){if(e.target&&e.target.id==='auth-form'){e.preventDefault();doSignIn();}});
