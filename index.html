@@ -626,7 +626,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(
 @media (min-width:900px){.nav button[aria-current="page"]{box-shadow:inset 3px 0 0 var(--brand)}}
 .tgl{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--surface)}
 .tgl:hover{color:var(--ink)}
-/* v01.13-c: finestre bloccate in orizzontale */
+/* v01.14-a: finestre bloccate in orizzontale */
 html,body{max-width:100%;overflow-x:hidden}
 .scrim{overscroll-behavior:contain}
 .sheet{overflow-x:hidden;box-sizing:border-box;min-width:0;max-height:calc(100dvh - 16px);-webkit-overflow-scrolling:touch}
@@ -649,7 +649,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .pe{padding:14px;margin:0;color:var(--muted);font-size:14px}
 .col-a,.col-b{min-width:0}
 .main,main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
-/* v01.13-c: mesi sotto i mini-grafici e righe attivita */
+/* v01.14-a: mesi sotto i mini-grafici e righe attivita */
 .sp-w{width:100%}
 .sp-m{position:relative;height:13px;margin-top:2px}
 .sp-m i{position:absolute;top:0;transform:translateX(-50%);font-style:normal;font-size:9.5px;line-height:13px;color:var(--muted);font-weight:600}
@@ -702,6 +702,26 @@ html,body{max-width:100%;overflow-x:hidden}
 .vmo:has(input:checked){border-color:var(--new);background:color-mix(in srgb,var(--new) 8%,var(--surface))}
 .ag-r{display:flex;align-items:center;gap:10px;margin:0 0 10px}.ag-l{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;flex:none}
 .ag-r .vsel{flex:1;min-width:0}.ag-h{margin:-2px 0 12px}
+/* dati aziendali */
+.pb{padding:14px}
+.az-logo{display:flex;align-items:center;justify-content:center;min-height:90px;border:1px dashed var(--line);border-radius:12px;background:var(--surface-2);margin:0 0 10px;padding:10px}
+.az-logo img{max-width:240px;max-height:110px;object-fit:contain}
+.az-btns{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.az-g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.az-g3{display:grid;grid-template-columns:1fr 1.6fr .7fr;gap:10px}
+.az-g2>.field,.az-g3>.field{min-width:0}
+.az-ref{display:grid;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px;margin:0 0 10px;background:var(--surface-2)}
+.az-rh{display:flex;gap:8px;align-items:center}.az-rh select{flex:1;min-width:0}
+.az-ref input,.az-ref select{width:100%;min-height:46px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);min-width:0;font-size:16px}
+.az-save{display:flex;gap:10px;margin:4px 0 24px}.az-save .btn{flex:1}
+#az-form{max-width:760px}
+/* scheda aziendale (pdf) */
+.r-lh{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:3px solid #0F172A;padding-bottom:12px;margin-bottom:18px}
+.r-logo{display:block;max-height:64px;max-width:200px;object-fit:contain}
+.r-lhr{text-align:right;min-width:0}.r-lhr h1{font-size:21px;margin:0 0 3px}
+.r-kvg{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
+.r-kvi{border-bottom:1px solid #E6E9F0;padding:5px 0}.r-kvi span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#5B6678}.r-kvi b{font-size:13.5px;word-break:break-word}
+.r-foot{margin-top:22px;text-align:right}
+@media (max-width:640px){.az-ref .az-g2{grid-template-columns:1fr}.az-g3{grid-template-columns:1fr 1fr}.az-g3>.field:nth-child(2){grid-column:1/-1;order:3}.r-lh{flex-direction:column}.r-lhr{text-align:left}.r-kvg{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1068,7 +1088,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.13-c</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.14-a</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function themeDark(){var t=document.documentElement.getAttribute('data-theme');if(t)return t==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);}
@@ -1089,7 +1109,7 @@ function renderHeader(){
     el.innerHTML='<button class="icon-btn" data-act="back" aria-label="Indietro">'+ic('back')+'</button>'+(ca?avatar(ca.nome,true):'')+'<div class="ttl"><h1>'+esc(ca?ca.nome:'')+'</h1><div class="sub">Analisi vendite</div></div><button class="icon-btn" data-act="open-cliente" data-id="'+esc(ui.anaId)+'" aria-label="Apri scheda cliente">'+ic('building')+'</button>';
     return;
   }
-  var titles={oggi:'Oggi',clienti:'Clienti',todo:'To-do',attivita:'Attività',stat:'Statistiche',analisi:'Analisi',plan:'Planning'};
+  var titles={oggi:'Oggi',clienti:'Clienti',todo:'To-do',attivita:'Attività',stat:'Statistiche',analisi:'Analisi',plan:'Planning',azienda:'Dati aziendali'};
   var sub=ui.tab==='oggi'?'<div class="sub">'+esc(dateLong())+''+'</div>':'';
   el.innerHTML='<div class="ttl"><h1>'+titles[ui.tab]+'</h1>'+sub+'</div><div class="top-acts"><button class="btn primary" data-act="q-contatto">'+ic('plus',16)+' Nuovo contatto</button><button class="btn ghost" data-act="q-todo">To-do</button><button class="btn ghost" data-act="q-cliente">Cliente</button></div><button class="tgl" data-act="theme" aria-label="Cambia tema chiaro/scuro" title="Tema chiaro/scuro">'+ic(themeDark()?'sun':'moon',18)+'</button><button class="icon-btn" data-act="dati" aria-label="Dati: importa ed esporta Excel">'+ic('dots')+'</button>';
 }
@@ -1251,7 +1271,7 @@ function doRender(){
   var ui=S.ui;
   if(ui.tab==='plan'&&!planWide()){ui.tab='oggi';renderHeader();renderNav();}
   document.body.classList.toggle('plan-on',ui.tab==='plan');
-  v.innerHTML=ui.tab==='oggi'?viewOggi():ui.tab==='clienti'?(ui.clienteId?viewCliente():viewClienti()):ui.tab==='todo'?viewTodo():ui.tab==='stat'?viewStat():ui.tab==='analisi'?viewAnalisi():ui.tab==='plan'?viewPlan():viewAttivita();
+  v.innerHTML=ui.tab==='oggi'?viewOggi():ui.tab==='clienti'?(ui.clienteId?viewCliente():viewClienti()):ui.tab==='todo'?viewTodo():ui.tab==='stat'?viewStat():ui.tab==='analisi'?viewAnalisi():ui.tab==='plan'?viewPlan():ui.tab==='azienda'?viewAzienda():viewAttivita();
   if(ui.tab==='clienti'&&!ui.clienteId&&ui.vista==='mappa')attachMap();
   if(ui.tab==='clienti'&&!ui.clienteId&&ui.vista==='giro')attachGiro();
 }
@@ -1547,6 +1567,7 @@ function openQuick(){
 function openDati(){
   var ex=S.clienti.some(function(c){return c.esempio;});
   var body='<p class="muted">'+S.clienti.length+' clienti · '+S.attivita.length+' attività · '+S.todo.length+' to-do</p><div class="stack">'
+    +'<button class="btn primary wide" data-act="az-open">'+ic('building',18)+' Dati aziendali e scheda PDF</button>'
     +'<button class="btn ghost wide" data-act="import">'+ic('upload',18)+' Importa da Excel</button>'
     +'<button class="btn ghost wide" data-act="export">'+ic('download',18)+' Esporta in Excel</button>'
     +'<button class="btn ghost wide" data-act="template">Scarica il modello Excel</button>'
@@ -2606,10 +2627,7 @@ function visitReport(cid){
   tips.push('Chiudere la visita con un prossimo passo concreto e una data (poi registra la visita e crea il to-do di follow-up).');
   h+='<section><h2>Spunti per la visita</h2><ul class="r-tips">'+tips.map(function(t){return '<li>☐ '+esc(t)+'</li>';}).join('')+'</ul></section>';
   h+='<section class="r-notes"><h2>Appunti e esito</h2><div class="r-lines"></div><div class="r-lines"></div><div class="r-lines"></div><div class="r-lines"></div><div class="r-lines"></div><div class="r-lines"></div><p class="r-n">Prossimo passo: ____________________________ &nbsp; Data: ____________</p></section>';
-  var el=document.getElementById('rpt');if(el)el.remove();
-  el=document.createElement('div');el.id='rpt';el.className='rpt';
-  el.innerHTML='<div class="rpt-bar"><button type="button" class="btn ghost" data-act="rpt-close">Chiudi</button><span>Anteprima del report</span><span class="rpt-act"><button type="button" class="btn primary" data-act="rpt-pdf">Crea PDF</button></span></div><div class="rpt-pg">'+h+'</div>';
-  closeSheet();document.body.appendChild(el);document.body.classList.add('rpt-on');el.scrollTop=0;
+  rptOpen(h,'Visita');
 }
 var RPT={blob:null,url:'',name:''};
 function loadLib(src,test){return new Promise(function(res,rej){if(test()){res();return;}var s=document.createElement('script');s.src=src;s.onload=function(){test()?res():rej(new Error('lib'));};s.onerror=function(){rej(new Error('rete'));};document.head.appendChild(s);});}
@@ -2650,7 +2668,7 @@ async function rptPdf(el){
     var blob=await rptMakePdf();if(!blob)throw new Error('vuoto');
     if(RPT.url)URL.revokeObjectURL(RPT.url);
     var t=(document.querySelector('#rpt h1')||{}).textContent||'cliente';
-    RPT.blob=blob;RPT.url=URL.createObjectURL(blob);RPT.name='Visita - '+t.replace(/[^\w\s.-]/g,'').trim()+' - '+todayStr()+'.pdf';
+    RPT.blob=blob;RPT.url=URL.createObjectURL(blob);RPT.name=((document.getElementById('rpt')||{dataset:{}}).dataset.pre||'Visita')+' - '+t.replace(/[^\w\s.-]/g,'').trim()+' - '+todayStr()+'.pdf';
     var bar=document.querySelector('#rpt .rpt-act');
     if(bar)bar.innerHTML='<a class="btn ghost" href="'+RPT.url+'" download="'+esc(RPT.name)+'" target="_blank" rel="noopener">Apri / Scarica</a><button type="button" class="btn primary" data-act="rpt-share">Condividi PDF</button>';
     toast('PDF pronto');
@@ -2667,6 +2685,100 @@ async function rptShare(){
   }catch(e){if(e&&e.name==='AbortError')return;console.error(e);}
   var a=document.createElement('a');a.href=RPT.url;a.download=RPT.name;document.body.appendChild(a);a.click();a.remove();
   toast('PDF scaricato');
+}
+/* ---------- dati aziendali ---------- */
+var AZR=[['commerciale','Referente commerciale'],['amministrativo','Referente amministrativo'],['magazzino','Referente magazzino'],['altro','Altro referente']];
+function azGet(){return S.vendite.find(function(d){return d.id==='_azienda';})||{};}
+function azRefRow(r,i){
+  r=r||{};
+  return '<div class="az-ref"><div class="az-rh"><select name="r-ruolo" aria-label="Ruolo">'+AZR.map(function(x){return '<option value="'+x[0]+'"'+(r.r===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select><button type="button" class="icon-btn sm" data-act="az-del" aria-label="Elimina referente">'+ic('x',17)+'</button></div>'
+    +'<input name="r-nome" type="text" placeholder="Nome e cognome" value="'+esc(r.nome||'')+'" autocomplete="off">'
+    +'<div class="az-g2"><input name="r-tel" type="tel" placeholder="Telefono" value="'+esc(r.tel||'')+'" autocomplete="off"><input name="r-mail" type="email" placeholder="E-mail" value="'+esc(r.email||'')+'" autocomplete="off"></div></div>';
+}
+function azCollect(){
+  var f=document.getElementById('az-form');if(!f)return null;
+  function v(n){var e=f.querySelector('[name="'+n+'"]');return e?e.value.trim():'';}
+  var o={};['ragione','piva','cf','sdi','pec','email','sito','indirizzo','cap','citta','prov','tel','fax','banca','iban'].forEach(function(k){o[k]=v('az-'+k);});
+  o.logo=AZLOGO||'';
+  o.refs=Array.prototype.slice.call(f.querySelectorAll('.az-ref')).map(function(row){
+    function g(n){var e=row.querySelector('[name="'+n+'"]');return e?e.value.trim():'';}
+    return {r:g('r-ruolo'),nome:g('r-nome'),tel:g('r-tel'),email:g('r-mail')};
+  }).filter(function(r){return r.nome||r.tel||r.email;});
+  return o;
+}
+var AZLOGO='',AZINIT=false;
+function viewAzienda(){
+  if(!S.vOk)return '<div class="empty"><h2>Manca un passaggio su Supabase</h2><p>I dati aziendali usano la stessa tabella dell\'analisi vendite: apri Supabase → SQL Editor, incolla il contenuto del file <b>VENDITE-supabase.sql</b> e premi Run. Poi ricarica la pagina.</p></div>';
+  var a=S.ui.azDraft||azGet();
+  if(!AZINIT||!S.ui.azDraft){AZLOGO=a.logo||'';AZINIT=true;}
+  function F(k,label,extra){return fld('az-'+k,label,a[k]||'',extra);}
+  var refs=(a.refs&&a.refs.length)?a.refs:[];
+  var h='<form id="az-form" novalidate autocomplete="off">';
+  h+=panel('p-todo','Logo',null,'','<div class="pb"><div class="az-logo" id="az-logo-box">'+(AZLOGO?'<img src="'+AZLOGO+'" alt="Logo">':'<span class="muted">Nessun logo</span>')+'</div><div class="az-btns"><button type="button" class="btn ghost" data-act="az-logo">'+ic('upload',16)+' Carica logo</button><button type="button" class="btn ghost" data-act="az-logo-rm" id="az-logo-rm"'+(AZLOGO?'':' hidden')+'>Rimuovi</button></div><input type="file" id="az-logo-in" accept="image/*" hidden><p class="ghint">Meglio un\'immagine con sfondo trasparente o bianco (PNG o JPG). Viene ridimensionata da sola.</p></div>'.replace("\\\\'","'"));
+  h+=panel('p-todo','Dati societari',null,'','<div class="pb">'+F('ragione','Ragione sociale',{attrs:'autocapitalize="words"'})+'<div class="az-g2">'+F('piva','Partita IVA',{attrs:'inputmode="numeric"'})+F('cf','Codice fiscale')+'</div><div class="az-g2">'+F('sdi','Codice SDI (fatturazione)',{attrs:'autocapitalize="characters"'})+F('pec','PEC',{type:'email'})+'</div></div>');
+  h+=panel('p-todo','Sede e contatti',null,'','<div class="pb">'+F('indirizzo','Indirizzo',{attrs:'autocapitalize="words"'})+'<div class="az-g3">'+F('cap','CAP',{attrs:'inputmode="numeric"'})+F('citta','Città',{attrs:'autocapitalize="words"'})+F('prov','Prov.',{attrs:'maxlength="2" autocapitalize="characters"'})+'</div><div class="az-g2">'+F('tel','Telefono',{type:'tel'})+F('fax','Fax',{type:'tel'})+'</div><div class="az-g2">'+F('email','E-mail',{type:'email'})+F('sito','Sito web')+'</div></div>');
+  h+=panel('p-todo','Referenti',null,'','<div class="pb"><div id="az-refs">'+refs.map(azRefRow).join('')+'</div><div class="az-btns"><button type="button" class="btn ghost" data-act="az-add" data-r="commerciale">+ Commerciale</button><button type="button" class="btn ghost" data-act="az-add" data-r="amministrativo">+ Amministrativo</button><button type="button" class="btn ghost" data-act="az-add" data-r="magazzino">+ Magazzino</button><button type="button" class="btn ghost" data-act="az-add" data-r="altro">+ Altro</button></div></div>');
+  h+=panel('p-todo','Coordinate bancarie',null,'','<div class="pb">'+F('banca','Banca di appoggio')+F('iban','IBAN',{attrs:'autocapitalize="characters" spellcheck="false"'})+'</div>');
+  h+='<div class="az-save"><button type="button" class="btn ghost" data-act="az-save">Salva</button><button type="button" class="btn primary" data-act="az-save" data-pdf="1">Salva e vedi PDF</button></div></form>';
+  return h;
+}
+function azFmtIban(s){return String(s||'').replace(/\\s+/g,'').toUpperCase().replace(/(.{4})/g,'$1 ').trim();}
+function azDocHtml(a){
+  function kv(l,v){return v?'<div class="r-kvi"><span>'+esc(l)+'</span><b>'+esc(v)+'</b></div>':'';}
+  var sede=[a.indirizzo,[a.cap,a.citta].filter(Boolean).join(' ')+(a.prov?' ('+a.prov.toUpperCase()+')':'')].filter(function(x){return x&&x.trim();}).join(' · ');
+  var h='<header class="r-lh"><div class="r-lhl">'+(a.logo?'<img class="r-logo" src="'+a.logo+'" alt="Logo">':'')+'</div><div class="r-lhr"><h1>'+esc(a.ragione||'Ragione sociale')+'</h1>'+(sede?'<div class="r-sub">'+esc(sede)+'</div>':'')+'<div class="r-sub">'+esc([a.tel?'Tel. '+a.tel:'',a.fax?'Fax '+a.fax:''].filter(Boolean).join(' · '))+'</div>'+(a.email?'<div class="r-sub">'+esc(a.email)+'</div>':'')+'</div></header>';
+  var soc=kv('Ragione sociale',a.ragione)+kv('Partita IVA',a.piva)+kv('Codice fiscale',a.cf)+kv('Sede',sede);
+  if(soc)h+='<section><h2>Dati societari</h2><div class="r-kvg">'+soc+'</div></section>';
+  var con=kv('Telefono',a.tel)+kv('Fax',a.fax)+kv('E-mail',a.email)+kv('PEC',a.pec)+kv('Sito web',a.sito);
+  if(con)h+='<section><h2>Contatti</h2><div class="r-kvg">'+con+'</div></section>';
+  var refs=(a.refs||[]);
+  if(refs.length){
+    h+='<section><h2>Referenti</h2><table class="r-t"><thead><tr><th>Ruolo</th><th>Nome</th><th>Telefono</th><th>E-mail</th></tr></thead><tbody>'
+      +AZR.map(function(x){return refs.filter(function(r){return r.r===x[0];});}).reduce(function(acc,l){return acc.concat(l);},[]).map(function(r){var lab=(AZR.filter(function(x){return x[0]===r.r;})[0]||['','Referente'])[1].replace('Referente ','');return '<tr><td>'+esc(lab.charAt(0).toUpperCase()+lab.slice(1))+'</td><td><b>'+esc(r.nome)+'</b></td><td>'+esc(r.tel)+'</td><td>'+esc(r.email)+'</td></tr>';}).join('')+'</tbody></table></section>';
+  }
+  var fat=kv('Codice SDI',a.sdi)+kv('Banca di appoggio',a.banca)+kv('IBAN',a.iban?azFmtIban(a.iban):'');
+  if(fat)h+='<section><h2>Fatturazione e pagamenti</h2><div class="r-kvg">'+fat+'</div></section>';
+  if(!soc&&!con&&!refs.length&&!fat)h+='<p class="r-p">Compila i dati aziendali per vedere qui la scheda.</p>';
+  h+='<p class="r-n r-foot">Documento generato il '+esc(fmtIT(todayStr()))+'</p>';
+  return h;
+}
+function azPreview(a){a=a||azGet();rptOpen(azDocHtml(a),'Scheda aziendale');}
+async function azSave(openPdf){
+  var o=azCollect();if(!o)return;
+  if(!S.vOk){toast('Serve prima la tabella su Supabase (VENDITE-supabase.sql)');return;}
+  if(!o.ragione){toast('Scrivi almeno la ragione sociale');var e=document.querySelector('[name="az-ragione"]');if(e)e.focus();return;}
+  o.id='_azienda';o.aggiornato=new Date().toISOString();
+  S.ui.azDraft=null;
+  await put('vendite',o);
+  toast('Dati aziendali salvati');
+  if(openPdf)azPreview(o);
+}
+function azLogoFile(file){
+  if(!file)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    var im=new Image();
+    im.onload=function(){
+      var MW=520,MH=260,k=Math.min(1,MW/im.width,MH/im.height),w=Math.max(1,Math.round(im.width*k)),h=Math.max(1,Math.round(im.height*k));
+      var c=document.createElement('canvas');c.width=w;c.height=h;var x=c.getContext('2d');
+      var png=/png|webp|svg|gif/i.test(file.type);
+      if(!png){x.fillStyle='#fff';x.fillRect(0,0,w,h);}
+      x.drawImage(im,0,0,w,h);
+      AZLOGO=c.toDataURL(png?'image/png':'image/jpeg',0.9);
+      var bx=document.getElementById('az-logo-box');if(bx)bx.innerHTML='<img src="'+AZLOGO+'" alt="Logo">';
+      var rm=document.getElementById('az-logo-rm');if(rm)rm.hidden=false;
+      S.ui.azDraft=azCollect();
+    };
+    im.onerror=function(){toast('Non riesco a leggere questa immagine');};
+    im.src=rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+function rptOpen(h,pre){
+  var el=document.getElementById('rpt');if(el)el.remove();
+  el=document.createElement('div');el.id='rpt';el.className='rpt';el.dataset.pre=pre||'Visita';
+  el.innerHTML='<div class="rpt-bar"><button type="button" class="btn ghost" data-act="rpt-close">Chiudi</button><span>Anteprima</span><span class="rpt-act"><button type="button" class="btn primary" data-act="rpt-pdf">Crea PDF</button></span></div><div class="rpt-pg">'+h+'</div>';
+  closeSheet();document.body.appendChild(el);document.body.classList.add('rpt-on');el.scrollTop=0;RPT.blob=null;
 }
 function rptClose(){var el=document.getElementById('rpt');if(el)el.remove();RPT.blob=null;document.body.classList.remove('rpt-on');document.body.style.overflow='';}
 function prepSheet(cid){
@@ -3227,6 +3339,12 @@ var H={
   retry:function(){location.reload();},
   alertgg:function(el){S.ui.alertGg=+el.dataset.v;try{localStorage.setItem('crm.alertGg',String(S.ui.alertGg));}catch(e){}render();if($('.sheet[aria-label="Clienti da rivisitare"]'))alertSheet();},
   'alert-all':function(){alertSheet();},
+  'az-open':function(){closeSheet();S.ui.tab='azienda';S.ui.clienteId=null;S.ui.anaId=null;window.scrollTo(0,0);render();},
+  'az-add':function(el){var b=document.getElementById('az-refs');if(!b)return;var d=document.createElement('div');d.innerHTML=azRefRow({r:el.dataset.r});var n=d.firstChild;b.appendChild(n);var i=n.querySelector('[name="r-nome"]');if(i)i.focus();S.ui.azDraft=azCollect();},
+  'az-del':function(el){var r=el.closest('.az-ref');if(r)r.remove();S.ui.azDraft=azCollect();},
+  'az-logo':function(){var f=document.getElementById('az-logo-in');if(f){f.value='';f.click();}},
+  'az-logo-rm':function(){AZLOGO='';var bx=document.getElementById('az-logo-box');if(bx)bx.innerHTML='<span class="muted">Nessun logo</span>';var rm=document.getElementById('az-logo-rm');if(rm)rm.hidden=true;S.ui.azDraft=azCollect();},
+  'az-save':function(el){azSave(!!el.dataset.pdf);},
   'prep-pdf':function(el){visitReport(el.dataset.id);},
   'rpt-close':function(){rptClose();},
   'rpt-pdf':function(el){rptPdf(el);},
@@ -3276,7 +3394,7 @@ var H={
   },
   'ana-reset':function(el){
     if(!el.classList.contains('armed')){el.classList.add('armed');el.dataset.orig=el.textContent;el.textContent='Tocca ancora per confermare';setTimeout(function(){if(el.isConnected){el.classList.remove('armed');el.textContent=el.dataset.orig;}},4000);return;}
-    delMany('vendite',S.vendite.map(function(d){return d.id;})).then(function(){toast('Dati di analisi cancellati');});
+    delMany('vendite',S.vendite.filter(function(d){return d.id!=='_azienda';}).map(function(d){return d.id;})).then(function(){toast('Dati di analisi cancellati');});
   },
   'goto-alert':function(){S.ui.tab='stat';S.ui.clienteId=null;render();window.scrollTo(0,0);},
   'alert-giro':function(){closeSheet();var g=giroSt(),L=staleData(statData()),ok=L.filter(function(x){return hasGeo(x.c);});g.sel=ok.map(function(x){return x.c.id;});g.res=null;S.ui.tab='clienti';S.ui.clienteId=null;S.ui.vista='giro';render();window.scrollTo(0,0);if(ok.length<L.length)toast((L.length-ok.length)+' clienti senza posizione: localizzali dalla Mappa');},
@@ -3324,10 +3442,13 @@ document.addEventListener('input',function(e){
   else if(t.id==='g-sosta'){var g=giroSt();g.sosta=Math.max(0,Math.min(240,+t.value||0));giroSave();var rs=$('#g-res');if(rs&&g.res){rs.innerHTML=giroResHtml();attachGiro();}}
 });
 document.addEventListener('change',function(e){
+  if(e.target&&e.target.id==='az-logo-in'){azLogoFile(e.target.files&&e.target.files[0]);return;}
+  if(e.target&&e.target.closest&&e.target.closest('#az-form')){S.ui.azDraft=azCollect();}
   if(e.target&&e.target.id==='ag-sel'){vAgSet(e.target.value);S.ui.anaQ='';render();return;}
   if(e.target&&e.target.name==='vmode'&&VPLAN){vSnap();VPLAN.mode=e.target.value;vPreview();return;}
   if(e.target&&e.target.id==='g-rit'){var g=giroSt();g.ritorno=e.target.checked;g.res=null;giroSave();var rs=$('#g-res');if(rs)rs.innerHTML=giroResHtml();}
 });
+document.addEventListener('input',function(e){if(e.target&&e.target.closest&&e.target.closest('#az-form'))S.ui.azDraft=azCollect();});
 document.addEventListener('submit',function(e){if(e.target&&e.target.id==='auth-form'){e.preventDefault();doSignIn();}});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#scrim'))closeSheet();});
 $('#file').addEventListener('change',function(e){handleFile(e.target.files&&e.target.files[0]);});
