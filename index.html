@@ -126,8 +126,8 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance}
 .stat span{font-size:13px;font-weight:600}
 .stat.cliente span{color:var(--ok)} .stat.approcciato span{color:var(--warn)} .stat.da_approcciare span{color:var(--new)}
 
-.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-block:12px 6px}
-.qa-i{display:grid;justify-items:center;gap:4px;padding:12px 4px;border-radius:14px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:600;text-decoration:none;text-align:center}
+.qa{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-block:12px 6px}
+.qa-i{display:grid;justify-items:center;gap:4px;padding:12px 4px;border-radius:14px;background:var(--surface);border:1px solid var(--line);font-size:12px;font-weight:600;text-decoration:none;text-align:center}
 .qa-i.off{opacity:.45;pointer-events:none}
 .kv{display:flex;align-items:center;gap:12px;padding:10px 8px 10px 14px;border-top:1px solid var(--line)}
 .kv:first-child{border-top:0}
@@ -626,7 +626,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(
 @media (min-width:900px){.nav button[aria-current="page"]{box-shadow:inset 3px 0 0 var(--brand)}}
 .tgl{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--surface)}
 .tgl:hover{color:var(--ink)}
-/* v01.14-b: finestre bloccate in orizzontale */
+/* v01.15-a: finestre bloccate in orizzontale */
 html,body{max-width:100%;overflow-x:hidden}
 .scrim{overscroll-behavior:contain}
 .sheet{overflow-x:hidden;box-sizing:border-box;min-width:0;max-height:calc(100dvh - 16px);-webkit-overflow-scrolling:touch}
@@ -649,7 +649,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .pe{padding:14px;margin:0;color:var(--muted);font-size:14px}
 .col-a,.col-b{min-width:0}
 .main,main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
-/* v01.14-b: mesi sotto i mini-grafici e righe attivita */
+/* v01.15-a: mesi sotto i mini-grafici e righe attivita */
 .sp-w{width:100%}
 .sp-m{position:relative;height:13px;margin-top:2px}
 .sp-m i{position:absolute;top:0;transform:translateX(-50%);font-style:normal;font-size:9.5px;line-height:13px;color:var(--muted);font-weight:600}
@@ -723,6 +723,20 @@ html,body{max-width:100%;overflow-x:hidden}
 .r-kvi{border-bottom:1px solid #E6E9F0;padding:5px 0}.r-kvi span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#5B6678}.r-kvi b{font-size:13.5px;word-break:break-word}
 .r-foot{margin-top:22px;text-align:right}
 @media (max-width:640px){.az-ref .az-g2{grid-template-columns:1fr}.az-g3{grid-template-columns:1fr 1fr}.az-g3>.field:nth-child(2){grid-column:1/-1;order:3}.r-lh{flex-direction:column}.r-lhr{text-align:left}.r-kvg{grid-template-columns:1fr}}
+/* appuntamenti */
+.panel.p-app{--pc:var(--warn)}
+.apps{list-style:none;margin:0;padding:0}
+.app{display:block;padding:12px 14px;border-top:1px solid var(--line)}
+.apps>.app:first-child{border-top:0}
+.app-main{display:flex;gap:14px;width:100%;text-align:left;background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;align-items:flex-start}
+.app-t{flex:none;min-width:58px;text-align:center;border-radius:12px;padding:6px 8px;background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 35%,var(--line))}
+.app-t b{display:block;font-size:17px;letter-spacing:-.01em;color:var(--warn)}
+.app-t small{display:block;font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap}
+.app.late .app-t{background:color-mix(in srgb,var(--danger) 10%,var(--surface));border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}.app.late .app-t b{color:var(--danger)}
+.app-b{display:block;min-width:0;flex:1}.app-b .t,.app-b .a-m,.app-b .a-cl{display:block}.app-b .a-m{margin-top:2px}
+.app-a{display:flex;gap:8px;margin:10px 0 0 72px;flex-wrap:wrap}
+.app-top{margin:0 0 12px}
+.app-late{display:flex;gap:8px;align-items:center;width:100%;border:0;border-top:1px solid var(--line);background:color-mix(in srgb,var(--danger) 8%,var(--surface));color:var(--danger);padding:10px 14px;font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -838,11 +852,50 @@ var S={clienti:[],attivita:[],todo:[],vendite:[],vOk:false,ready:{clienti:false,
 try{var _ag=+localStorage.getItem('crm.alertGg');if(_ag>0)S.ui.alertGg=_ag;}catch(e){}
 var DB=null,sb=null,USER=null,CHANNEL=null,rafId=0,PENDING=null;
 
+/* ---------- appuntamenti ---------- */
+function appAll(I){
+  var out=[];S.attivita.forEach(function(a){if(a.app&&I.cm.has(a.clienteId))out.push(a);});
+  return out.sort(function(a,b){return a.data.localeCompare(b.data);});
+}
+function appDayLbl(d){var n=diffDays(d,todayStr());return n===0?'Oggi':n===1?'Domani':n===2?'Dopodomani':n===-1?'Ieri':fmtDay(d);}
+function appRow(a,I,showDay){
+  var c=I.cm.get(a.clienteId);if(!c)return '';
+  var T=TIPI[a.tipo]||TIPI.altro,rf=a.referenteId&&(c.referenti||[]).find(function(r){return r.id===a.referenteId;});
+  var late=a.data<nowLocal(),d=a.data.slice(0,10);
+  var meta=[T.label];if(rf)meta.push('con '+rf.nome+(rf.ruolo?' ('+rf.ruolo+')':''));
+  return '<li class="app'+(late?' late':'')+'"><button class="app-main" data-act="edit-att" data-id="'+a.id+'"><span class="app-t"><b>'+esc(a.data.slice(11,16)||'--:--')+'</b>'+(showDay?'<small>'+esc(appDayLbl(d))+'</small>':'')+'</span>'
+    +'<span class="app-b"><span class="a-cl">'+esc(c.nome)+'</span>'+(a.titolo?'<span class="t">'+esc(a.titolo)+'</span>':'')+'<span class="s a-m">'+esc(meta.join(' · '))+'</span>'+(a.note?'<span class="s snip a-n">'+esc(a.note)+'</span>':'')+'</span></button>'
+    +'<div class="app-a"><button type="button" class="btn ghost sm" data-act="app-done" data-id="'+a.id+'">Fatto</button><button type="button" class="btn ghost sm" data-act="prep" data-id="'+esc(c.id)+'">Prepara visita</button></div></li>';
+}
+function viewApp(){
+  if(!S.clienti.length)return emptyStart();
+  var I=idx(),now=nowLocal(),all=appAll(I),up=all.filter(function(a){return a.data>=now;}),late=all.filter(function(a){return a.data<now;});
+  var f=S.ui.appF==='chiudere'?'chiudere':'prossimi';
+  var h='<div class="app-top"><button class="btn primary" data-act="new-app">'+ic('plus',16)+' Nuovo appuntamento</button></div>'
+    +'<div class="chips">'+chip('appf','prossimi','Prossimi',f==='prossimi',up.length)+chip('appf','chiudere','Da chiudere',f==='chiudere',late.length)+'</div>';
+  var list=f==='prossimi'?up:late.slice().reverse();
+  if(!list.length)return h+'<div class="empty"><h2>'+(f==='prossimi'?'Nessun appuntamento in programma':'Niente da chiudere')+'</h2><p>'+(f==='prossimi'?'Fissa un appuntamento con un cliente: data, ora, con chi e perché.':'Gli appuntamenti passati che non hai ancora segnato come fatti compaiono qui.')+'</p></div>';
+  if(f==='chiudere')h+='<p class="ghint">Appuntamenti già passati. Tocca "Fatto" per trasformarli in una visita registrata e scrivere il resoconto.</p>';
+  var cur='',out='';
+  list.forEach(function(a){
+    var d=a.data.slice(0,10),lab=fmtDay(d);
+    if(d!==cur){if(cur)out+='</ul></section>';cur=d;out+='<section class="grp"><h3 class="grp-h">'+esc(lab)+'</h3><ul class="list apps">';}
+    out+=appRow(a,I,false);
+  });
+  return h+out+'</ul></section>';
+}
+function appPanel(I){
+  var all=appAll(I),now=nowLocal();if(!all.length)return '';
+  var up=all.filter(function(a){return a.data>=now;}),late=all.filter(function(a){return a.data<now;});
+  var n=isDesk()?4:3,body=(up.length?'<ul class="list apps">'+up.slice(0,n).map(function(a){return appRow(a,I,true);}).join('')+'</ul>':'<p class="pe">Nessun appuntamento in programma.</p>')
+    +(late.length?'<button class="app-late" data-act="appf-go">'+ic('bell',16)+'<span><b>'+late.length+'</b> '+(late.length===1?'appuntamento passato da chiudere':'appuntamenti passati da chiudere')+'</span></button>':'');
+  return panel('p-app','Prossimi appuntamenti',up.length,'<button class="lnk" data-act="tab" data-v="app">Tutti</button>',body);
+}
 function idx(){
-  var cm=new Map(S.clienti.map(function(c){return [c.id,c];})),ta=new Map(),tt=new Map();
-  S.attivita.forEach(function(a){if(!cm.has(a.clienteId))return;if(!ta.has(a.clienteId))ta.set(a.clienteId,[]);ta.get(a.clienteId).push(a);});
+  var cm=new Map(S.clienti.map(function(c){return [c.id,c];})),ta=new Map(),tt=new Map(),tp=new Map();
+  S.attivita.forEach(function(a){if(!cm.has(a.clienteId))return;var mm=a.app?tp:ta;if(!mm.has(a.clienteId))mm.set(a.clienteId,[]);mm.get(a.clienteId).push(a);});
   S.todo.forEach(function(a){if(!cm.has(a.clienteId))return;if(!tt.has(a.clienteId))tt.set(a.clienteId,[]);tt.get(a.clienteId).push(a);});
-  return {cm:cm,ta:ta,tt:tt};
+  return {cm:cm,ta:ta,tt:tt,tp:tp};
 }
 
 /* ---------- archivio ---------- */
@@ -1088,8 +1141,8 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 /* ---------- viste ---------- */
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
-  var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['plan','calendar','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.14-b</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['app','calendar','Agenda'],['plan','list','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.15-a</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function themeDark(){var t=document.documentElement.getAttribute('data-theme');if(t)return t==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);}
@@ -1110,7 +1163,7 @@ function renderHeader(){
     el.innerHTML='<button class="icon-btn" data-act="back" aria-label="Indietro">'+ic('back')+'</button>'+(ca?avatar(ca.nome,true):'')+'<div class="ttl"><h1>'+esc(ca?ca.nome:'')+'</h1><div class="sub">Analisi vendite</div></div><button class="icon-btn" data-act="open-cliente" data-id="'+esc(ui.anaId)+'" aria-label="Apri scheda cliente">'+ic('building')+'</button>';
     return;
   }
-  var titles={oggi:'Oggi',clienti:'Clienti',todo:'To-do',attivita:'Attività',stat:'Statistiche',analisi:'Analisi',plan:'Planning',azienda:'Dati aziendali'};
+  var titles={oggi:'Oggi',clienti:'Clienti',todo:'To-do',attivita:'Attività',stat:'Statistiche',analisi:'Analisi',plan:'Planning',azienda:'Dati aziendali',app:'Appuntamenti'};
   var sub=ui.tab==='oggi'?'<div class="sub">'+esc(dateLong())+''+'</div>':'';
   el.innerHTML='<div class="ttl"><h1>'+titles[ui.tab]+'</h1>'+sub+'</div><div class="top-acts"><button class="btn primary" data-act="q-contatto">'+ic('plus',16)+' Nuovo contatto</button><button class="btn ghost" data-act="q-todo">To-do</button><button class="btn ghost" data-act="q-cliente">Cliente</button></div><button class="tgl" data-act="theme" aria-label="Cambia tema chiaro/scuro" title="Tema chiaro/scuro">'+ic(themeDark()?'sun':'moon',18)+'</button><button class="icon-btn" data-act="dati" aria-label="Dati: importa ed esporta Excel">'+ic('dots')+'</button>';
 }
@@ -1133,12 +1186,12 @@ function viewOggi(){
   function grp(title,items,cls){return items.length?'<section class="grp"><h3 class="grp-h '+(cls||'')+'">'+title+' <span class="cnt">'+items.length+'</span></h3><ul class="list">'+items.map(function(x){return todoRow(x,I,true);}).join('')+'</ul></section>':'';}
 var nAll=over.length+today.length+soon.length,LIM=isDesk()?99:4,lim=LIM;function cut(arr){var r=arr.slice(0,Math.max(lim,0));lim-=r.length;return r;}
   var g=grp('Scaduti',cut(over),'over')+grp('Oggi',cut(today),'today')+grp('Prossimi 7 giorni',cut(soon));
-  h+='<div class="cols"><div class="col-a">'+panel('p-todo','Da fare',nAll,nAll>LIM?'<button class="lnk" data-act="tab" data-v="todo">Vedi tutti</button>':'',g||'<p class="pe">Niente in scadenza nei prossimi 7 giorni.</p>')+'</div><div class="col-b">';
+  h+='<div class="cols"><div class="col-a">'+appPanel(I)+panel('p-todo','Da fare',nAll,nAll>LIM?'<button class="lnk" data-act="tab" data-v="todo">Vedi tutti</button>':'',g||'<p class="pe">Niente in scadenza nei prossimi 7 giorni.</p>')+'</div><div class="col-b">';
   var stl=staleData(statData());
   if(stl.length)h+='<button class="alertbar" data-act="goto-alert">'+ic('bell',18)+'<span><b>'+stl.length+'</b> '+(stl.length===1?'cliente non visitato':'clienti non visitati')+' da oltre '+alertGg()+' giorni</span><span class="chev">'+ic('chevron',18)+'</span></button>';
   h+=cadBar();
   h+=riskCard();
-  var acts=S.attivita.filter(function(a){return I.cm.has(a.clienteId);}).sort(function(a,b){return b.data.localeCompare(a.data);}).slice(0,isDesk()?6:5);
+  var acts=S.attivita.filter(function(a){return !a.app&&I.cm.has(a.clienteId);}).sort(function(a,b){return b.data.localeCompare(a.data);}).slice(0,isDesk()?6:5);
   if(acts.length)h+=panel('p-act','Ultime attività',null,'','<ul class="list">'+acts.map(function(a){return actRow(a,I,true);}).join('')+'</ul>');
   return h+'</div></div>';
 }
@@ -1205,7 +1258,7 @@ function viewTodo(){
 function viewAttivita(){
   if(!S.clienti.length)return emptyStart();
   var I=idx(),f=S.ui.attF;
-  var all=S.attivita.filter(function(a){return I.cm.has(a.clienteId);}).sort(function(a,b){return b.data.localeCompare(a.data);});
+  var all=S.attivita.filter(function(a){return !a.app&&I.cm.has(a.clienteId);}).sort(function(a,b){return b.data.localeCompare(a.data);});
   var cnt={tutte:all.length};Object.keys(TIPI).forEach(function(k){cnt[k]=all.filter(function(a){return a.tipo===k;}).length;});
   var h='<div class="chips">'+chip('attf','tutte','Tutte',f==='tutte',cnt.tutte)+Object.keys(TIPI).map(function(k){return chip('attf',k,TIPI[k].label,f===k,cnt[k]);}).join('')+'</div>';
   var list=(f==='tutte'?all:all.filter(function(a){return a.tipo===f;})).slice(0,200);
@@ -1231,6 +1284,7 @@ function viewCliente(){
     +(tel?'<a class="qa-i" href="tel:'+esc(tel.replace(/[^\d+]/g,''))+'">'+ic('phone',20)+'Chiama</a>':'<span class="qa-i off">'+ic('phone',20)+'Chiama</span>')
     +(mail?'<a class="qa-i" href="mailto:'+esc(mail)+'">'+ic('mail',20)+'Scrivi</a>':'<span class="qa-i off">'+ic('mail',20)+'Scrivi</span>')
     +'<button class="qa-i" data-act="new-att" data-cid="'+c.id+'">'+ic('pin',20)+'Contatto</button>'
+    +'<button class="qa-i" data-act="new-app" data-cid="'+c.id+'">'+ic('calendar',20)+'Appunt.</button>'
     +'<button class="qa-i" data-act="new-todo" data-cid="'+c.id+'">'+ic('todo',20)+'To-do</button></div>';
   h+='<button class="btn primary prep-btn" data-act="prep" data-id="'+esc(c.id)+'">'+ic('pin',18)+' Prepara visita</button>';
   h+='<div class="chips" style="padding-top:10px">'+chip('sub','scheda','Scheda',sub==='scheda')+chip('sub','attivita','Attività',sub==='attivita',acts.length)+chip('sub','todo','To-do',sub==='todo',open.length)+'</div>';
@@ -1247,6 +1301,8 @@ function viewCliente(){
     var right='<div class="sec-h"><h3>Referenti</h3><button class="link-btn" data-act="new-ref">+ Aggiungi</button></div>'+(refs||'<div class="list"><div class="kv"><span class="s">Nessun referente. Aggiungi le persone da contattare.</span></div></div>');
     h+='<div class="two"><div>'+left+'</div><div>'+right+'</div></div>';
   }else if(sub==='attivita'){
+    var apc=(I.tp.get(c.id)||[]).slice().sort(function(a,b){return a.data.localeCompare(b.data);});
+    if(apc.length)h+='<div class="sec-h"><h3>Appuntamenti</h3><button class="link-btn" data-act="new-app" data-cid="'+c.id+'">+ Nuovo</button></div><ul class="list apps">'+apc.map(function(a){return appRow(a,I,true);}).join('')+'</ul>';
     h+='<div class="sec-h"><h3>Cronologia</h3><button class="link-btn" data-act="new-att" data-cid="'+c.id+'">+ Nuova</button></div>';
     h+=acts.length?'<ul class="list">'+acts.map(function(a){return actRow(a,I,false);}).join('')+'</ul>':'<div class="list"><div class="kv"><span class="s">Nessuna attività registrata per questo cliente.</span></div></div>';
   }else{
@@ -1272,7 +1328,7 @@ function doRender(){
   var ui=S.ui;
   if(ui.tab==='plan'&&!planWide()){ui.tab='oggi';renderHeader();renderNav();}
   document.body.classList.toggle('plan-on',ui.tab==='plan');
-  v.innerHTML=ui.tab==='oggi'?viewOggi():ui.tab==='clienti'?(ui.clienteId?viewCliente():viewClienti()):ui.tab==='todo'?viewTodo():ui.tab==='stat'?viewStat():ui.tab==='analisi'?viewAnalisi():ui.tab==='plan'?viewPlan():ui.tab==='azienda'?viewAzienda():viewAttivita();
+  v.innerHTML=ui.tab==='oggi'?viewOggi():ui.tab==='clienti'?(ui.clienteId?viewCliente():viewClienti()):ui.tab==='todo'?viewTodo():ui.tab==='stat'?viewStat():ui.tab==='analisi'?viewAnalisi():ui.tab==='plan'?viewPlan():ui.tab==='azienda'?viewAzienda():ui.tab==='app'?viewApp():viewAttivita();
   if(ui.tab==='clienti'&&!ui.clienteId&&ui.vista==='mappa')attachMap();
   if(ui.tab==='clienti'&&!ui.clienteId&&ui.vista==='giro')attachGiro();
 }
@@ -1420,6 +1476,8 @@ function openAttForm(opt){
   if(!opt.id&&!S.clienti.length){toast('Aggiungi prima un cliente');openClienteForm();return;}
   var cur=opt.id?S.attivita.find(function(x){return x.id===opt.id;}):null;
   var a=cur?clone(cur):{tipo:opt.tipo||'visita',data:opt.data||nowLocal(),clienteId:opt.clienteId||'',titolo:'',note:'',referenteId:''};
+  var isApp=!!(opt.app||(cur&&cur.app));
+  if(isApp&&!cur&&!opt.data)a.data=addDays(todayStr(),1)+'T09:00';
   var locked=!!cur||!!opt.clienteId;
   var body='<form id="frm" novalidate>'+pickerHtml(a.clienteId,locked)
     +'<div class="field"><span class="lbl">Tipo</span><div class="seg wrap" role="radiogroup" aria-label="Tipo di attività">'+Object.keys(TIPI).map(function(k){return '<label><input type="radio" name="tipo" value="'+k+'"'+(a.tipo===k?' checked':'')+'><span>'+ic(TIPI[k].icon,16)+TIPI[k].label+'</span></label>';}).join('')+'</div></div>'
@@ -1436,8 +1494,17 @@ function openAttForm(opt){
     +(cur?'':'<label class="chk"><input type="checkbox" id="fu"><span>Aggiungi un to-do di follow-up</span></label><div class="fu" id="fu-box" hidden><div class="field"><label class="lbl" for="fu-t">To-do</label><input id="fu-t" type="text" value="Ricontattare" autocomplete="off"></div><div class="field"><label class="lbl" for="fu-d">Entro il</label><input id="fu-d" type="date" value="'+addDays(todayStr(),7)+'"></div><div class="chips">'+[['3','+3 giorni'],['7','+1 settimana'],['30','+1 mese']].map(function(x){return '<button type="button" class="chip" data-act="date-set" data-t="fu-d" data-n="'+x[0]+'">'+x[1]+'</button>';}).join('')+'</div></div>')
     +'<div class="actions">'+(cur?'<button type="button" class="btn danger" data-act="del" data-kind="att" data-id="'+cur.id+'">Elimina</button>':'')+'<button type="button" class="btn ghost" data-act="close">Annulla</button><button type="submit" class="btn primary">Salva</button></div>'
     +(cur?'<div class="actions"><button type="button" class="btn ghost" data-act="goto-cliente" data-id="'+esc(a.clienteId)+'">Apri scheda cliente</button></div>':'')+'</form>';
-  openSheet(cur?'Modifica attività':'Nuovo contatto',body,function(sheet){
+  openSheet(isApp?(cur?'Modifica appuntamento':'Nuovo appuntamento'):(cur?'Modifica attività':'Nuovo contatto'),body,function(sheet){
     var frm=$('#frm',sheet);
+    if(isApp){
+      var lt=$('label[for="f-titolo"]',sheet);if(lt)lt.textContent='Perché (motivo)';
+      var ti=$('#f-titolo',sheet);if(ti)ti.placeholder='es. Presentare il nuovo listino';
+      var ln=$('label[for="f-note"]',sheet);if(ln)ln.textContent='Appunti (cosa preparare, cosa dire)';
+      var ld=$('label[for="f-data"]',sheet);if(ld)ld.textContent='Data e ora';
+      ['#fotos','#f-foto','#ft-msg','.rec','#fu'].forEach(function(q){var e=$(q,sheet);var f=e&&(e.closest('.field')||e.closest('label')||e);if(f)f.hidden=true;});
+      var fb=$('#fu-box',sheet);if(fb)fb.hidden=true;
+      var sb0=$('button[type=submit]',sheet);if(sb0)sb0.textContent='Salva appuntamento';
+    }
     function fillRefs(cid){
       var c=S.clienti.find(function(x){return x.id===cid;});
       $('#f-ref',sheet).innerHTML='<option value="">—</option>'+((c&&c.referenti)||[]).map(function(r){return '<option value="'+esc(r.id)+'"'+(a.referenteId===r.id?' selected':'')+'>'+esc(r.nome)+(r.ruolo?' · '+esc(r.ruolo):'')+'</option>';}).join('')+(c?'<option value="__new">+ Nuovo referente…</option>':'');
@@ -1503,9 +1570,10 @@ function openAttForm(opt){
         newRef={id:uid('r_'),nome:nn};['ruolo','telefono','cellulare','email'].forEach(function(k){newRef[k]=(fd.get('nr_'+k)||'').trim();});newRef.note='';
       }
       var o=cur?clone(cur):{id:uid('a_'),creato:new Date().toISOString()};
+      if(isApp)o.app=1;
       o.clienteId=cid;o.tipo=fd.get('tipo')||'altro';o.data=fd.get('data')||nowLocal();o.titolo=(fd.get('titolo')||'').trim();o.note=(fd.get('note')||'').trim();o.referenteId=newRef?newRef.id:(fd.get('referenteId')||'');
       if(newRef){var cc0=clone(S.clienti.find(function(x){return x.id===cid;}));cc0.referenti=cc0.referenti||[];cc0.referenti.push(newRef);cc0.aggiornato=new Date().toISOString();await put('clienti',cc0);}
-      if(fotoOk()){
+      if(fotoOk()&&!isApp){
         var okB=$('button[type=submit]',sheet);if(okB){okB.disabled=true;okB.textContent='Salvo…';}
         o.foto=FT.filter(function(f){return f.p;}).map(function(f){return {p:f.p,n:f.n};});
         var nuove=FT.filter(function(f){return f.isNew&&f.blob;}),fail=0,fe='';
@@ -1518,6 +1586,7 @@ function openAttForm(opt){
         if(fail)toast('Foto non salvate ('+fail+'): '+fe);
       }
       await put('attivita',o);
+      if(isApp){toast('Appuntamento salvato');closeSheet();return;}
       if(!cur){
         var cl=S.clienti.find(function(x){return x.id===cid;});
         if(cl&&cl.stato==='da_approcciare'){var c2=clone(cl);c2.stato='approcciato';await put('clienti',c2);toast('Attività salvata. Cliente segnato come Approcciato');}
@@ -1562,7 +1631,7 @@ function openTodoForm(opt){
 }
 function openQuick(){
   var cid=(S.ui.tab==='clienti'&&S.ui.clienteId)?S.ui.clienteId:'';
-  var body='<div class="quick"><button class="q wide" data-act="q-contatto" data-cid="'+esc(cid)+'">'+ic('pin',24)+'<span>Nuovo contatto<br><small>visita, telefonata, email…</small></span></button><button class="q" data-act="q-todo" data-cid="'+esc(cid)+'">'+ic('todo',24)+'Nuovo to-do</button><button class="q" data-act="q-cliente">'+ic('building',24)+'Nuovo cliente</button></div>';
+  var body='<div class="quick"><button class="q wide" data-act="q-contatto" data-cid="'+esc(cid)+'">'+ic('pin',24)+'<span>Nuovo contatto<br><small>visita, telefonata, email…</small></span></button><button class="q wide" data-act="new-app" data-cid="'+esc(cid)+'">'+ic('calendar',24)+'<span>Nuovo appuntamento<br><small>data, ora, con chi e perché</small></span></button><button class="q" data-act="q-todo" data-cid="'+esc(cid)+'">'+ic('todo',24)+'Nuovo to-do</button><button class="q" data-act="q-cliente">'+ic('building',24)+'Nuovo cliente</button></div>';
   openSheet('Aggiungi',body);
 }
 function openDati(){
@@ -1839,7 +1908,7 @@ function inR(d,r){return !!d&&d>=r[0]&&d<=r[1];}
 function statData(){
   var I=idx();
   function real(id){var c=I.cm.get(id);return !!c&&!c.esempio;}
-  return {I:I,cl:S.clienti.filter(function(c){return !c.esempio;}),ac:S.attivita.filter(function(a){return real(a.clienteId);}),td:S.todo.filter(function(x){return real(x.clienteId);})};
+  return {I:I,cl:S.clienti.filter(function(c){return !c.esempio;}),ac:S.attivita.filter(function(a){return !a.app&&real(a.clienteId);}),td:S.todo.filter(function(x){return real(x.clienteId);})};
 }
 function countIn(D,r){
   return {
@@ -3340,6 +3409,10 @@ var H={
   retry:function(){location.reload();},
   alertgg:function(el){S.ui.alertGg=+el.dataset.v;try{localStorage.setItem('crm.alertGg',String(S.ui.alertGg));}catch(e){}render();if($('.sheet[aria-label="Clienti da rivisitare"]'))alertSheet();},
   'alert-all':function(){alertSheet();},
+  'new-app':function(el){closeSheet();openAttForm({app:true,clienteId:el.dataset.cid||''});},
+  'appf':function(el){S.ui.appF=el.dataset.v;render();},
+  'appf-go':function(){S.ui.appF='chiudere';S.ui.tab='app';S.ui.clienteId=null;render();window.scrollTo(0,0);},
+  'app-done':function(el){var a=S.attivita.find(function(x){return x.id===el.dataset.id;});if(!a)return;var o=clone(a);delete o.app;put('attivita',o).then(function(){toast('Chiuso: aggiungi il resoconto');openAttForm({id:o.id});});},
   'az-open':function(){closeSheet();S.ui.tab='azienda';S.ui.clienteId=null;S.ui.anaId=null;window.scrollTo(0,0);render();},
   'az-add':function(el){var b=document.getElementById('az-refs');if(!b)return;var d=document.createElement('div');d.innerHTML=azRefRow({r:el.dataset.r});var n=d.firstChild;b.appendChild(n);var i=n.querySelector('[name="r-nome"]');if(i)i.focus();S.ui.azDraft=azCollect();},
   'az-del':function(el){var r=el.closest('.az-ref');if(r)r.remove();S.ui.azDraft=azCollect();},
