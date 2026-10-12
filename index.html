@@ -626,7 +626,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(
 @media (min-width:900px){.nav button[aria-current="page"]{box-shadow:inset 3px 0 0 var(--brand)}}
 .tgl{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--surface)}
 .tgl:hover{color:var(--ink)}
-/* v01.15-b: finestre bloccate in orizzontale */
+/* v01.15-c: finestre bloccate in orizzontale */
 html,body{max-width:100%;overflow-x:hidden}
 .scrim{overscroll-behavior:contain}
 .sheet{overflow-x:hidden;box-sizing:border-box;min-width:0;max-height:calc(100dvh - 16px);-webkit-overflow-scrolling:touch}
@@ -650,7 +650,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .pe{padding:14px;margin:0;color:var(--muted);font-size:14px}
 .col-a,.col-b{min-width:0}
 .main,main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
-/* v01.15-b: mesi sotto i mini-grafici e righe attivita */
+/* v01.15-c: mesi sotto i mini-grafici e righe attivita */
 .sp-w{width:100%}
 .sp-m{position:relative;height:13px;margin-top:2px}
 .sp-m i{position:absolute;top:0;transform:translateX(-50%);font-style:normal;font-size:9.5px;line-height:13px;color:var(--muted);font-weight:600}
@@ -724,6 +724,8 @@ html,body{max-width:100%;overflow-x:hidden}
 .r-kvi{border-bottom:1px solid #E6E9F0;padding:5px 0}.r-kvi span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#5B6678}.r-kvi b{font-size:13.5px;word-break:break-word}
 .r-foot{margin-top:22px;text-align:right}
 @media (max-width:640px){.az-ref .az-g2{grid-template-columns:1fr}.az-g3{grid-template-columns:1fr 1fr}.az-g3>.field:nth-child(2){grid-column:1/-1;order:3}.r-lh{flex-direction:column}.r-lhr{text-align:left}.r-kvg{grid-template-columns:1fr}}
+.ana-f{display:flex;gap:8px;align-items:center;margin:0 0 10px}.ana-f .vsel{flex:1;min-width:0}.ana-f .btn{white-space:nowrap}
+.an-sum{margin:2px 4px 10px}
 /* dashboard v2 */
 .rr-b li{white-space:normal}
 .cols .arow .row-main{display:block!important}.cols .arow .row-main .s.snip{-webkit-line-clamp:2!important}
@@ -1185,7 +1187,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['app','calendar','Agenda'],['plan','list','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.15-b</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.15-c</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function themeDark(){var t=document.documentElement.getAttribute('data-theme');if(t)return t==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);}
@@ -2154,25 +2156,51 @@ function vCards(){
   S.clienti.forEach(function(c){
     var rows=all.get(c.id);if(!rows||!rows.length)return;
     var cur=vSum(rows.filter(function(r){return vInP(r.d,'ytd');})),prv=vSum(rows.filter(function(r){return vInP(r.d,'prevytd');}));
-    out.push({c:c,rows:rows,cur:cur,prv:prv,d:dlt(cur.t,prv.t)});
+    var lo='';rows.forEach(function(r){if(r.d<=T.t&&r.d>lo)lo=r.d;});
+    out.push({c:c,rows:rows,cur:cur,prv:prv,d:dlt(cur.t,prv.t),lo:lo});
   });
   return out;
 }
+var ANA_SORT=[['fatt','Fatturato'],['var','Variazione %'],['diff','Variazione €'],['marg','Margine'],['prv','Anno scorso'],['lo','Ultimo ordine'],['az','A–Z']];
+function anaVal(x,s){
+  if(s==='var')return x.d;
+  if(s==='diff')return (x.prv.t>0||x.cur.t>0)?x.cur.t-x.prv.t:null;
+  if(s==='marg')return x.cur.m;
+  if(s==='prv')return x.prv.t;
+  if(s==='lo')return x.lo||null;
+  if(s==='fatt')return x.cur.t;
+  return null;
+}
+function anaDirLbl(s,rev){
+  var m={fatt:['Dal più alto','Dal più basso'],'var':['Dal più in crescita','Dal più in calo'],diff:['Dal più in crescita','Dal più in calo'],marg:['Dal più alto','Dal più basso'],prv:['Dal più alto','Dal più basso'],lo:['Dal più recente','Dal più vecchio'],az:['A → Z','Z → A']}[s]||['',''];
+  return m[rev?1:0];
+}
 function anaSort(L){
-  var s=S.ui.anaS||'fatt';
+  var s=S.ui.anaS||'fatt',rev=!!S.ui.anaRev,k=(rev?-1:1)*(s==='az'?1:-1);
   return L.sort(function(a,b){
-    if(s==='az')return cmpNome(a.c,b.c);
-    if(s==='var'){var x=a.d==null?-9:a.d,y=b.d==null?-9:b.d;return y-x||cmpNome(a.c,b.c);}
-    if(s==='marg'){var m1=a.cur.m==null?-9:a.cur.m,m2=b.cur.m==null?-9:b.cur.m;return m2-m1||cmpNome(a.c,b.c);}
-    return b.cur.t-a.cur.t||b.prv.t-a.prv.t||cmpNome(a.c,b.c);
+    if(s==='az')return k*cmpNome(a.c,b.c);
+    var x=anaVal(a,s),y=anaVal(b,s);
+    if(x==null&&y==null)return cmpNome(a.c,b.c);
+    if(x==null)return 1;if(y==null)return -1;
+    if(x===y)return cmpNome(a.c,b.c);
+    return k*(x<y?-1:1)*(s==='lo'?1:1);
   });
 }
+var ANA_FLT=[['tutti','Tutti',function(){return true;}],
+  ['su','In crescita',function(x){return x.d!=null&&x.d>0;}],
+  ['giu','In calo',function(x){return x.d!=null&&x.d<0;}],
+  ['giu30','Calo oltre 30%',function(x){return x.d!=null&&x.d<=-0.3;}],
+  ['fermi','Senza ordini quest\'anno',function(x){return x.cur.t<=0&&x.prv.t>0;}],
+  ['nuovi','Nuovi (niente anno scorso)',function(x){return x.prv.t<=0&&x.cur.t>0;}],
+  ['mbasso','Margine sotto il 15%',function(x){return x.cur.m!=null&&x.cur.m<0.15;}]];
+function anaFilter(L){var f=S.ui.anaF||'tutti',o=ANA_FLT.find(function(e){return e[0]===f;});return o?L.filter(o[2]):L;}
 function anaCardsHtml(L){
   var T=vToday(),q=normKey(S.ui.anaQ||'');
   if(q)L=L.filter(function(x){return normKey(x.c.nome).indexOf(q)>=0||normKey(x.c.citta||'').indexOf(q)>=0;});
-  L=anaSort(L.slice());
+  L=anaSort(anaFilter(L).slice());
   if(!L.length)return '<div class="empty small"><p>Nessun cliente trovato.</p></div>';
-  return '<div class="agrid">'+L.map(function(x){
+  var sc=0,sp=0;L.forEach(function(x){sc+=x.cur.t;sp+=x.prv.t;});var sd=dlt(sc,sp);
+  return '<p class="ghint an-sum"><b>'+L.length+'</b> '+(L.length===1?'cliente':'clienti')+' · '+eur0(sc)+' quest\'anno'+(sd==null?'':' ('+(sd>=0?'+':'')+Math.round(sd*100)+'% vs '+(T.Y-1)+')')+'</p><div class="agrid">'+L.map(function(x){
     return '<button class="acard" data-act="ana-open" data-id="'+esc(x.c.id)+'"><div class="ac-h"><span class="t">'+esc(x.c.nome)+'</span>'+dltTxt(x.d,x.cur.t)+'</div>'
       +'<div class="ac-v">'+eur0(x.cur.t)+'<small> quest\'anno</small></div>'+vSpark(x.rows)
       +'<div class="ac-f"><span>Stesso periodo '+(T.Y-1)+': '+eur0(x.prv.t)+'</span><span>'+(x.cur.m!=null?'Marg. '+pct0(x.cur.m)+(x.cur.r!=null?' · Ric. '+pct0(x.cur.r):''):'')+'</span></div></button>';
@@ -2204,7 +2232,8 @@ function viewAnalisi(){
     +'<div class="kpi"><span>Clienti attivi</span><b>'+att+'</b><small>'+calo+' in calo vs '+(T.Y-1)+'</small></div></div>';
   var s=S.ui.anaS||'fatt';
   var ctl='<div class="vrow"><div class="search">'+ic('search',20)+'<input id="an-q" type="search" placeholder="Cerca un cliente…" value="'+esc(S.ui.anaQ||'')+'" autocomplete="off" aria-label="Cerca cliente"></div></div>'
-    +'<div class="chips"><span class="chips-l">Ordina per</span>'+chip('ana-sort','fatt','Fatturato',s==='fatt')+chip('ana-sort','var','Variazione',s==='var')+chip('ana-sort','marg','Margine',s==='marg')+chip('ana-sort','az','A–Z',s==='az')+'</div>';
+    +'<div class="vrow ana-f"><label class="ag-l" for="an-sort">Ordina</label><select id="an-sort" class="vsel" aria-label="Ordina per">'+ANA_SORT.map(function(o){return '<option value="'+o[0]+'"'+(s===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select><button class="btn ghost sm" data-act="ana-dir" aria-label="Inverti ordine">'+(S.ui.anaRev?'▲ ':'▼ ')+esc(anaDirLbl(s,S.ui.anaRev))+'</button></div>'
+    +'<div class="vrow ana-f"><label class="ag-l" for="an-flt">Mostra</label><select id="an-flt" class="vsel" aria-label="Filtra">'+ANA_FLT.map(function(o){return '<option value="'+o[0]+'"'+((S.ui.anaF||'tutti')===o[0]?' selected':'')+'>'+esc(o[1])+(o[0]==='tutti'?'':' ('+L.filter(o[2]).length+')')+'</option>';}).join('')+'</select></div>';
   var foot='<p class="chart-note">Confronto: i mesi caricati di quest\'anno contro gli stessi mesi dell\'anno scorso. Ogni file caricato vale per il periodo che indichi tu (data di inserimento degli ordini); sono escluse spese di trasporto e anticipi. Margine = (prezzo netto − costo) / prezzo netto. Ricarico = (prezzo netto − costo) / costo.</p><button class="btn ghost" data-act="ana-reset">Cancella tutti i dati di analisi</button>';
   return head+vAgHtml()+tiles+ctl+'<div id="an-list">'+anaCardsHtml(L)+'</div>'+foot;
 }
@@ -3511,7 +3540,9 @@ var H={
   'v-on':function(el){vSetOff(el.dataset.id,false).then(function(){toast('Cliente riattivato');closeSheet();render();if(vExclList().length)openVExcl();}).catch(function(){toast('Operazione non riuscita');});},
   'ana-excl':function(){openVExcl();},
   'ana-open':function(el){closeSheet();S.ui.tab='analisi';S.ui.clienteId=null;S.ui.anaId=el.dataset.id;S.ui.anaP='ytd';window.scrollTo(0,0);render();},
-  'ana-sort':function(el){S.ui.anaS=el.dataset.v;render();},
+  'ana-sort':function(el){S.ui.anaS=el.dataset.v;S.ui.anaRev=false;render();},
+  'ana-dir':function(){S.ui.anaRev=!S.ui.anaRev;render();},
+  'ana-flt':function(el){S.ui.anaF=el.dataset.v;render();},
   'ana-per':function(el){S.ui.anaP=el.dataset.v;render();},
   'ana-up':function(){var f=$('#file-v');f.value='';f.click();},
   'ana-go':function(){vApply();},
@@ -3600,6 +3631,8 @@ document.addEventListener('input',function(e){
 document.addEventListener('change',function(e){
   if(e.target&&e.target.id==='az-logo-in'){azLogoFile(e.target.files&&e.target.files[0]);return;}
   if(e.target&&e.target.closest&&e.target.closest('#az-form')){S.ui.azDraft=azCollect();}
+  if(e.target&&e.target.id==='an-sort'){S.ui.anaS=e.target.value;S.ui.anaRev=false;render();return;}
+  if(e.target&&e.target.id==='an-flt'){S.ui.anaF=e.target.value;render();return;}
   if(e.target&&e.target.id==='ag-sel'){vAgSet(e.target.value);S.ui.anaQ='';render();return;}
   if(e.target&&e.target.name==='vmode'&&VPLAN){vSnap();VPLAN.mode=e.target.value;vPreview();return;}
   if(e.target&&e.target.id==='g-rit'){var g=giroSt();g.ritorno=e.target.checked;g.res=null;giroSave();var rs=$('#g-res');if(rs)rs.innerHTML=giroResHtml();}
