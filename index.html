@@ -626,7 +626,7 @@ button:focus-visible,a:focus-visible,select:focus-visible{outline:2px solid var(
 @media (min-width:900px){.nav button[aria-current="page"]{box-shadow:inset 3px 0 0 var(--brand)}}
 .tgl{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line);background:var(--surface)}
 .tgl:hover{color:var(--ink)}
-/* v01.15-d: finestre bloccate in orizzontale */
+/* v01.15-e: finestre bloccate in orizzontale */
 html,body{max-width:100%;overflow-x:hidden}
 .scrim{overscroll-behavior:contain}
 .sheet{overflow-x:hidden;box-sizing:border-box;min-width:0;max-height:calc(100dvh - 16px);-webkit-overflow-scrolling:touch}
@@ -650,7 +650,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .pe{padding:14px;margin:0;color:var(--muted);font-size:14px}
 .col-a,.col-b{min-width:0}
 .main,main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
-/* v01.15-d: mesi sotto i mini-grafici e righe attivita */
+/* v01.15-e: mesi sotto i mini-grafici e righe attivita */
 .sp-w{width:100%}
 .sp-m{position:relative;height:13px;margin-top:2px}
 .sp-m i{position:absolute;top:0;transform:translateX(-50%);font-style:normal;font-size:9.5px;line-height:13px;color:var(--muted);font-weight:600}
@@ -726,6 +726,12 @@ html,body{max-width:100%;overflow-x:hidden}
 @media (max-width:640px){.az-ref .az-g2{grid-template-columns:1fr}.az-g3{grid-template-columns:1fr 1fr}.az-g3>.field:nth-child(2){grid-column:1/-1;order:3}.r-lh{flex-direction:column}.r-lhr{text-align:left}.r-kvg{grid-template-columns:1fr}}
 .ana-f{display:flex;gap:8px;align-items:center;margin:0 0 10px}.ana-f .vsel{flex:1;min-width:0}.ana-f .btn{white-space:nowrap}
 .an-sum{margin:2px 4px 10px}
+.stats.s4{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:-14px}
+.stat.k-warn .st-l{color:var(--warn)}.stat.k-danger .st-l{color:var(--danger)}
+.stat.k-warn .st-i{color:var(--warn)}.stat.k-danger .st-i{color:var(--danger)}
+.stat .st-s{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stat{cursor:pointer}
+@media (min-width:1024px){.stats.s4{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:-2px}}
 /* dashboard v2 */
 .rr-b li{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 .cols .arow .row-main{display:block!important}.cols .arow .row-main .s.snip{-webkit-line-clamp:2!important}
@@ -1193,7 +1199,7 @@ function fld(id,label,val,extra){return '<div class="field"><label class="lbl" f
 function badgeCount(){var t=todayStr();return S.todo.filter(function(x){return !x.fatto&&effDate(x)&&effDate(x)<=t;}).length;}
 function renderNav(){
   var items=[['oggi','home','Oggi'],['clienti','building','Clienti'],['todo','todo','To-do'],['attivita','clock','Attività'],['app','calendar','Agenda'],['plan','list','Planning'],['stat','chart','Statistiche'],['analisi','trend','Analisi']],n=badgeCount();
-  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.15-d</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
+  $('#nav').innerHTML='<div class="brand"><span class="mk">'+ic('building',20)+'</span><span class="bn"><b>CRM</b><small>Clienti · v01.15-e</small></span></div>'+items.map(function(it){return '<button data-act="tab" data-v="'+it[0]+'"'+(S.ui.tab===it[0]?' aria-current="page"':'')+'>'+ic(it[1],22)+'<span>'+it[2]+'</span>'+(it[0]==='todo'&&n?'<i class="badge">'+n+'</i>':'')+'</button>';}).join('')+'<div class="nav-foot"><span class="who">'+esc((USER&&USER.email)||'')+'</span><button class="nf-out" data-act="logout">Esci</button></div>';
   $('#fab').innerHTML=ic('plus',26);
 }
 function themeDark(){var t=document.documentElement.getAttribute('data-theme');if(t)return t==='dark';return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);}
@@ -1241,8 +1247,17 @@ var nAll=over.length+today.length+soon.length,LIM=isDesk()?6:4,lim=LIM;function 
   var g=grp('Scaduti',cut(over),'over')+grp('Oggi',cut(today),'today')+grp('Prossimi 7 giorni',cut(soon));
   var stl=staleData(statData());
   var acts=S.attivita.filter(function(a){return !a.app&&I.cm.has(a.clienteId);}).sort(function(a,b){return b.data.localeCompare(a.data);}).slice(0,isDesk()?6:5);
+  var nowL=nowLocal(),apAll=appAll(I),apUp=apAll.filter(function(x){return x.data>=nowL;}),apLate=apAll.length-apUp.length,rk=vRisk(),rkF=rk.filter(function(x){return x.kind==='fermo';}).length;
+  var nx=apUp[0],nxc=nx&&I.cm.get(nx.clienteId);
+  function tile(act,v,cls,num,lab,sub,icn){return '<button class="stat k-'+cls+'" data-act="'+act+'"'+(v?' data-v="'+v+'"':'')+'><span class="st-b"><b>'+num+'</b><span class="st-l">'+lab+'</span><small class="st-s">'+esc(sub)+'</small></span><span class="st-i">'+ic(icn,22)+'</span></button>';}
+  h+='<div class="stats s4">'
+    +tile('tab','app','warn',apUp.length,'Appuntamenti',nx?appDayLbl(nx.data.slice(0,10))+' '+nx.data.slice(11,16)+' · '+tc(nxc?nxc.nome:'')+(apLate?' · '+apLate+' da chiudere':''):(apLate?apLate+' da chiudere':'Nessuno in programma'),'calendar')
+    +tile('tab','todo','danger',over.length,'To-do scaduti',today.length?today.length+' in scadenza oggi':(soon.length?soon.length+' nei prossimi 7 giorni':'Niente in arrivo'),'todo')
+    +tile('risk-all','','danger',rk.length,'Clienti a rischio',rk.length?rkF+' fermi · '+(rk.length-rkF)+' in calo':'Tutto regolare','trend')
+    +tile('goto-alert','','warn',stl.length,'Non visitati','da oltre '+alertGg()+' giorni','bell')
+    +'</div>';
   h+='<div class="cols"><div class="col-b">';
-  if(stl.length)h+='<button class="alertbar" data-act="goto-alert">'+ic('bell',18)+'<span><b>'+stl.length+'</b> '+(stl.length===1?'cliente non visitato':'clienti non visitati')+' da oltre '+alertGg()+' giorni</span><span class="ab-go">Mostra<span class="ab-x"> elenco</span> '+ic('chevron',14)+'</span></button>';
+  if(false)h+='<button class="alertbar" data-act="goto-alert">'+ic('bell',18)+'<span><b>'+stl.length+'</b> '+(stl.length===1?'cliente non visitato':'clienti non visitati')+' da oltre '+alertGg()+' giorni</span><span class="ab-go">Mostra<span class="ab-x"> elenco</span> '+ic('chevron',14)+'</span></button>';
   h+=cadBar()+riskCard();
   h+='</div><div class="col-a">'+appPanel(I)+panel('p-todo','Da fare',nAll,nAll>LIM?'<button class="lnk" data-act="tab" data-v="todo">Vedi tutti</button>':'',g||'<p class="pe">Niente in scadenza nei prossimi 7 giorni.</p>')+'</div><div class="col-c">';
   if(acts.length)h+=panel('p-act','Ultime attività',null,'','<ul class="list">'+acts.map(function(a){return actRow(a,I,true);}).join('')+'</ul>');
